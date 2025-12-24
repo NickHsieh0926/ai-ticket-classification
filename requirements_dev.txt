@@ -1,0 +1,18 @@
+# Jupyter environment
+jupyterlab
+notebook
+jupytext
+
+# Data handling
+pandas
+numpy
+
+# Visualization (EDA only)
+matplotlib
+seaborn
+plotly
+cufflinks
+
+# NLP / ML (training & experiments)
+scikit-learn
+nltk

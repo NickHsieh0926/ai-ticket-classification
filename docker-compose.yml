@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  fastapi:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: fastapi
+    ports:
+      - "8000:8000"
+
+  java-api:
+    build:
+      context: ./java/wp/ai-ticket
+      dockerfile: Dockerfile
+    container_name: java-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - fastapi

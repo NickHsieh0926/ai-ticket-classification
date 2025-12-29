@@ -16,7 +16,7 @@ import tools.jackson.databind.ObjectMapper;
 
 public class TicketClassifierService {
 
-    private final String endpoint = "http://localhost:8000/predict";
+    private final String endpoint = "http://fastapi:8000/predict";
     private final HttpClient client;
     private final ObjectMapper mapper;
     
@@ -45,7 +45,7 @@ public class TicketClassifierService {
 
         return new PredictionResult(
                 (String) result.get("input"),
-                (String) result.get("predictedLabel"),
+                (String) result.get("predicted_label"),
                 ((Number) result.get("confidence")).doubleValue()
         );
     }

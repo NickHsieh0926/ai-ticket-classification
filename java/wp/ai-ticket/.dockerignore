@@ -1,0 +1,43 @@
+# --- IDE 相關 ---
+.idea/
+.vscode/
+*.swp
+*.swo
+*.iml
+
+# --- 建置輸出 (Build Output) ---
+target/
+build/
+out/
+bin/
+
+# --- 依賴與封裝內容 ---
+.mvn/wrapper/
+.gradle/
+*.jar
+*.war
+!target/*.jar
+!build/libs/*.jar
+
+# --- 作業系統與日誌 ---
+.DS_Store
+Thumbs.db
+*.log
+logs/
+tmp/
+
+# --- Docker 相關 ---
+docker-compose.yml
+Dockerfile*
+.dockerignore
+
+# --- 版本控制 ---
+.git
+.gitignore
+.gitattributes
+
+# --- 環境變數與敏感資訊 ---
+.env
+*.pem
+*.jks
+*.p12

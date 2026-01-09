@@ -16,13 +16,15 @@ import tools.jackson.databind.ObjectMapper;
 
 public class TicketClassifierService {
 
-    private final String endpoint = "http://fastapi:8000/predict";
+//    private final String endpoint = "http://fastapi:8000/predict";
+    private final String endpoint = "http://localhost:8000/predict";
     private final HttpClient client;
     private final ObjectMapper mapper;
     
     public TicketClassifierService() {
         this.client = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(5))
+        		.version(HttpClient.Version.HTTP_1_1)
+                .connectTimeout(Duration.ofSeconds(10))
                 .build();
         this.mapper = new ObjectMapper();
     }
@@ -34,7 +36,8 @@ public class TicketClassifierService {
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(endpoint))
-                .timeout(Duration.ofSeconds(5))
+                .version(HttpClient.Version.HTTP_1_1)
+                .timeout(Duration.ofSeconds(10))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();

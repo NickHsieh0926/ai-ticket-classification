@@ -1,4 +1,4 @@
-package com.hcy.ai_ticket.web.controller;
+package com.hcy.ai_ticket.web.controller.rest;
 
 import java.util.List;
 import java.util.Map;

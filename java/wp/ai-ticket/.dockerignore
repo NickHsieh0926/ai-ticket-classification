@@ -41,3 +41,7 @@ Dockerfile*
 *.pem
 *.jks
 *.p12
+
+# --- Log Files ---
+logs/
+*.log

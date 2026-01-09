@@ -16,6 +16,8 @@ services:
       context: ./java/wp/ai-ticket
       dockerfile: Dockerfile
     container_name: java-api
+    environment:
+        - JAVA_TOOL_OPTIONS=-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector
     ports:
       - "8080:8080"
     depends_on:

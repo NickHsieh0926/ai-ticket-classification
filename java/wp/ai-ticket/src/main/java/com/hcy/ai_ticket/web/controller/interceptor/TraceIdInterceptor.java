@@ -8,7 +8,7 @@ import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import com.hcy.ai_ticket.service.util.DebugTrace;
+import com.hcy.ai_ticket.util.DebugTrace;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

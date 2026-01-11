@@ -8,38 +8,18 @@ services:
     container_name: fastapi
     ports:
       - "8000:8000"
-    networks:
-      - app-network
 
-  java-api:
-    build:
-      context: ./java/wp/ai-ticket
-      dockerfile: Dockerfile
-    container_name: java-api
+  postgres:
+    image: postgres:16-alpine
+    container_name: psql
     environment:
-        - JAVA_TOOL_OPTIONS=-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector
+      POSTGRES_USER: sa
+      POSTGRES_PASSWORD: p@ssw0rd
+      POSTGRES_DB: ai_ticket
     ports:
-      - "8080:8080"
-    depends_on:
-      - fastapi
-    networks:
-      - app-network
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
       
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: nuxt-frontend
-    ports:
-      - "3000:3000"
-    environment:
-      - NUXT_API_INTERNAL_URL=http://java-api:8080
-      - 'NITRO_ROUTE_RULES__api____proxy=http://java-api:8080/**'
-    depends_on:
-      - java-api
-    networks:
-      - app-network
-      
-networks:
-  app-network:
-    driver: bridge
+volumes:
+  postgres_data:

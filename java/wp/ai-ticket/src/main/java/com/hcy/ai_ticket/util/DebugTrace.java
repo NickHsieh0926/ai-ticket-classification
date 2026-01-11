@@ -1,4 +1,4 @@
-package com.hcy.ai_ticket.service.util;
+package com.hcy.ai_ticket.util;
 
 import org.slf4j.Logger;
 

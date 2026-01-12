@@ -13,7 +13,7 @@ import com.hcy.ai_ticket.service.ticketclassifier.TicketClassifierService;
 import com.hcy.ai_ticket.service.ticketclassifier.dto.PredictionResult;
 
 @RestController
-@RequestMapping("/tickets")
+@RequestMapping("/api/tickets")
 public class TicketController {
 	
 	@Autowired

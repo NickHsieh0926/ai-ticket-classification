@@ -65,7 +65,7 @@ public class TicketClassifierService {
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
 
-        LOGGER.info("[TraceID: {}] Sending request to AI model", traceId);
+        LOGGER.info("Sending request to AI model");
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         
         @SuppressWarnings("unchecked")
@@ -98,7 +98,7 @@ public class TicketClassifierService {
         ticket.setTraceId(traceId);
 
         ticketRepository.save(ticket);
-        LOGGER.info("[TraceID: {}] Ticket saved to database, ID: {}", traceId, ticket.getId());
+        LOGGER.info("Ticket saved to database, ID: {}", ticket.getId());
     }
     
 }

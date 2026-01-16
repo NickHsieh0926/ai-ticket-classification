@@ -7,9 +7,8 @@ from src.config import CATEGORY_MAPPING
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 MODEL_PATH = BASE_DIR / "models" / "ticket_classifier.joblib"
-
-# 載入模型
 model = joblib.load(MODEL_PATH)
+
 
 def predict_text(text: str) -> Dict:
     text_clean = clean_text(text)
@@ -24,20 +23,18 @@ def predict_text(text: str) -> Dict:
     except:
         confidence = None
 
-    return {
-        "input": text,
-        "predicted_label": mapped_label,
-        "confidence": confidence
-    }
+    return {"input": text, "predicted_label": mapped_label, "confidence": confidence}
+
 
 def predict_batch(texts: List[str]) -> List[Dict]:
     return [predict_text(t) for t in texts]
+
 
 # CLI 測試
 if __name__ == "__main__":
     samples = [
         "My internet is down and cannot connect.",
-        "I need a refund for my last invoice."
+        "I need a refund for my last invoice.",
     ]
     for s in samples:
         print(predict_text(s))

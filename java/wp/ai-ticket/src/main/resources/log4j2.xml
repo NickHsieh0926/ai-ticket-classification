@@ -11,7 +11,7 @@
         </Console>
 
         <RollingFile name="RollingFile" fileName="${LOG_PATH}/app.log"
-                     filePattern="${LOG_PATH}/app-%d{yyyy-MM-dd}-%i.log.gz">
+                     filePattern="${LOG_PATH}/java-backend.%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout pattern="${PATTERN}"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1"/>

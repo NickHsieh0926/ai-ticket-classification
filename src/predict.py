@@ -17,7 +17,7 @@ def predict_text(text: str) -> Dict:
     try:
         probs = model.predict_proba([text_clean])[0]
         pred_idx = probs.argmax()
-        confidence = round(float(probs[pred_idx]), 2)
+        confidence = str(round(float(probs[pred_idx]), 2))
         pred_label = model.classes_[pred_idx]
         mapped_label = CATEGORY_MAPPING.get(pred_label, pred_label)
     except:

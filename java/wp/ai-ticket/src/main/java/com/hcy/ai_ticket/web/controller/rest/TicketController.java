@@ -17,18 +17,12 @@ import com.hcy.ai_ticket.service.ticketclassifier.dto.PredictionResult;
 public class TicketController {
 	
 	@Autowired
-	private TicketClassifierService classifierService;
+	private TicketClassifierService ticketClassifierService;
 
     @PostMapping("/predict")
-    public PredictionResult predict(@RequestBody Map<String, String> payload) throws Exception {
-        String text = payload.get("text");
-        return classifierService.predictAndSave(text);
-    }
-    
-    @PostMapping("/predict/batch")
-    public List<PredictionResult> predictBatch(@RequestBody Map<String, List<String>> payload) throws Exception {
+    public String predictBatch(@RequestBody Map<String, List<String>> payload) throws Exception {
         List<String> texts = payload.get("texts"); 
-        return classifierService.predictBatchAndSave(texts);
+        return ticketClassifierService.predictAndSave(texts);
     }
     
 }

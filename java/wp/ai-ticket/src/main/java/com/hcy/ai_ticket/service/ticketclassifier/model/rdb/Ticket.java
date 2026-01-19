@@ -26,8 +26,13 @@ public class Ticket {
 
 	private String confidence;
 
+	private String status;
+
 	@Column(name = "trace_id")
 	private String traceId;
+
+	@Column(name = "span_id")
+	private String spanId;
 
 	@CreationTimestamp
 	@Column(name = "created_Timestamp", updatable = false)
@@ -36,14 +41,15 @@ public class Ticket {
 	public Ticket() {
 	}
 
-	public Ticket(Long id, String content, String category, String confidence, String traceId,
-			LocalDateTime createdTimestamp) {
-		super();
+	public Ticket(Long id, String content, String category, String confidence, String status, String traceId,
+			String spanId, LocalDateTime createdTimestamp) {
 		this.id = id;
 		this.content = content;
 		this.category = category;
 		this.confidence = confidence;
+		this.status = status;
 		this.traceId = traceId;
+		this.spanId = spanId;
 		this.createdTimestamp = createdTimestamp;
 	}
 
@@ -79,12 +85,28 @@ public class Ticket {
 		this.confidence = confidence;
 	}
 
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
 	public String getTraceId() {
 		return traceId;
 	}
 
 	public void setTraceId(String traceId) {
 		this.traceId = traceId;
+	}
+
+	public String getSpanId() {
+		return spanId;
+	}
+
+	public void setSpanId(String spanId) {
+		this.spanId = spanId;
 	}
 
 	public LocalDateTime getCreatedTimestamp() {

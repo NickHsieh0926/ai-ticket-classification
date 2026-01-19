@@ -3,7 +3,9 @@ CREATE TABLE tickets (
     content TEXT,
     category VARCHAR(50),
     confidence VARCHAR(20),
+    status VARCHAR(20),
     trace_id VARCHAR(36), 
+    span_id VARCHAR(50), 
     created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

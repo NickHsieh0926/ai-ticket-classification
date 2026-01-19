@@ -1,10 +1,26 @@
 import logging
+import nltk
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
-from utils.logger_config import trace_id_var
+from utils.logger_config import trace_id_var, span_id_var
 from src.predict import predict_text, predict_batch
 
+
+def download_nltk_resources():
+    try:
+        nltk.download("wordnet")
+        nltk.download("omw-1.4")
+        from nltk.stem import WordNetLemmatizer
+
+        lemmatizer = WordNetLemmatizer()
+        lemmatizer.lemmatize("test")
+        print("NLTK resources loaded successfully.")
+    except Exception as e:
+        print(f"Error loading NLTK: {e}")
+
+
+download_nltk_resources()
 logger = logging.getLogger(__name__)
 app = FastAPI(title="Ticket Classification API")
 
@@ -12,12 +28,15 @@ app = FastAPI(title="Ticket Classification API")
 # Middleware
 @app.middleware("http")
 async def log_middleware(request, call_next):
-    tid = request.headers.get("X-Trace-Id", "n/a")
-    token = trace_id_var.set(tid)
+    trace_Id = request.headers.get("X-Trace-Id", "n/a")
+    span_Id = request.headers.get("X-Span-Id", "n/a")
+    token_tId = trace_id_var.set(trace_Id)
+    token_sId = span_id_var.set(span_Id)
     try:
         return await call_next(request)
     finally:
-        trace_id_var.reset(token)
+        trace_id_var.reset(token_tId)
+        span_id_var.reset(token_sId)
 
 
 # Request Models
@@ -32,8 +51,6 @@ class PredictBatchRequest(BaseModel):
 # Endpoints
 @app.get("/")
 def root():
-    print(f"Logger Name: {logger.name}")
-    print(f"Logger Level: {logger.getEffectiveLevel()}")
     logger.info("get Ticket Classification API status")
     return {"message": "Ticket Classification API is running"}
 

@@ -5,11 +5,13 @@ from contextvars import ContextVar
 
 
 trace_id_var = ContextVar("trace_id", default="n/a")
+span_id_var = ContextVar("span_id", default="n/a")
 
 
 class TraceIDFilter(logging.Filter):
     def filter(self, record):
         record.trace_id = trace_id_var.get()
+        record.span_id = span_id_var.get()
         return True
 
 
@@ -29,7 +31,7 @@ def setup_logger():
         logger.handlers.clear()
 
     formatter = logging.Formatter(
-        "%(asctime)s [%(levelname)s] [TraceID: %(trace_id)s] %(name)s - %(message)s"
+        "%(asctime)s [%(levelname)s] [TraceID: %(trace_id)s] [SpanID: %(span_id)s] %(name)s - %(message)s"
     )
 
     trace_filter = TraceIDFilter()

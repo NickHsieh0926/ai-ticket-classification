@@ -1,4 +1,4 @@
-package com.hcy.ai_ticket.service.security.config;
+package com.hcy.ai_ticket.service.config;
 
 import org.slf4j.MDC;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +21,12 @@ public class RestTemplateConfig {
 			if (traceId != null) {
 				request.getHeaders().add("X-Trace-Id", traceId);
 			}
+
+			String spanId = MDC.get("spanId");
+			if (spanId != null) {
+				request.getHeaders().add("X-Span-Id", spanId);
+			}
+
 			return execution.execute(request, body);
 		});
 

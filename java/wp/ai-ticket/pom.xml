@@ -19,6 +19,7 @@
 		<java.version>17</java.version>
 	</properties>
 	<dependencies>
+		<!-- Web & Testing -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
@@ -30,6 +31,7 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Logging with Log4j2 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
@@ -46,17 +48,16 @@
 			<artifactId>spring-boot-starter-log4j2</artifactId>
 		</dependency>
 
+
+		<!-- Log4j2 + Disrupto : Ring Buffer -->
 		<dependency>
 			<groupId>com.lmax</groupId>
 			<artifactId>disruptor</artifactId>
 			<version>3.4.4</version>
 		</dependency>
 
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-		</dependency>
 
+		<!-- Database & JPA -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -67,6 +68,7 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- Security & JWT -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
@@ -92,9 +94,23 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- JSON -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+
+		<!-- HTTP -->
 		<dependency>
 			<groupId>org.apache.httpcomponents.client5</groupId>
 			<artifactId>httpclient5</artifactId>
+		</dependency>
+
+		<!-- CSV -->
+		<dependency>
+			<groupId>com.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>5.9</version>
 		</dependency>
 
 	</dependencies>

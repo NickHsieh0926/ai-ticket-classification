@@ -6,6 +6,10 @@ services:
       context: .
       dockerfile: api/Dockerfile
     container_name: fastapi
+    environment:
+      - TZ=Asia/Taipei
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
     ports:
       - "8000:8000"
 

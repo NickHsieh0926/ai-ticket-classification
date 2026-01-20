@@ -33,11 +33,16 @@ public class AsyncTicketService {
 
 	@Async("ticketExecutor")
 	public void runAiPredictionTask(String content, String traceId, int itemIndex) {
+		
+		if (MDC.get("traceId") == null && traceId != null) {
+	        MDC.put("traceId", traceId);
+	    }
+		
 		String spanId = traceId + "-" + itemIndex;
 		MDC.put("spanId", spanId); 
 
 		try {
-			LOGGER.info(">>> 開始處理批次子任務 [spanId:{}]", spanId);
+			TRACE.message(">>> 開始處理批次子任務 [spanId:{}]", spanId);
 
 			Map<String, String> requestBody = new HashMap<>();
 			requestBody.put("text", content);
@@ -51,7 +56,7 @@ public class AsyncTicketService {
 			
 			saveToDatabase(result, traceId, spanId);
 
-			LOGGER.info("<<< [spanId:{}] 子任務處理成功，Category: {}", spanId, (String) result.get("predicted_label"));
+			TRACE.message("<<< [spanId:{}] 子任務處理成功，Category: {}", spanId, (String) result.get("predicted_label"));
 
 		} catch (Exception e) {
 			LOGGER.error("!!! 子任務處理失敗: {}", e.getMessage());
@@ -70,7 +75,7 @@ public class AsyncTicketService {
 		ticket.setStatus("SUCCESS");
 		
 		ticketRepository.save(ticket);
-		LOGGER.info("Ticket saved to database, ID: {}", ticket.getId());
+		TRACE.message("Ticket saved to database, ID: {}", ticket.getId());
 	}
 
 }

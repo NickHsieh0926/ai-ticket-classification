@@ -30,8 +30,11 @@ def setup_logger():
     if logger.hasHandlers():
         logger.handlers.clear()
 
+    date_format = "%Y-%m-%d %H:%M:%S"
+
     formatter = logging.Formatter(
-        "%(asctime)s [%(levelname)s] [TraceID: %(trace_id)s] [SpanID: %(span_id)s] %(name)s - %(message)s"
+        fmt="%(asctime)s [%(levelname)s] [TraceID: %(trace_id)s] [SpanID: %(span_id)s] %(name)s - %(message)s",
+        datefmt=date_format
     )
 
     trace_filter = TraceIDFilter()

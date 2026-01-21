@@ -35,18 +35,16 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter{
 
 	            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
 	            	
-	                String username = jwtUtils.getUserNameFromJwtToken(jwt);
+	            	UsernamePasswordAuthenticationToken authentication = jwtUtils.getAuthentication(jwt);
 
-	                MDC.put("user", username);
-
-	                UsernamePasswordAuthenticationToken authentication = 
-	                        new UsernamePasswordAuthenticationToken(username, null, null);
+	                MDC.put("user", authentication.getName());
 	                
 	                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
 	                SecurityContextHolder.getContext().setAuthentication(authentication);
 	            }
 	        } catch (Exception e) {
+	        	SecurityContextHolder.clearContext();
 	        	LOGGER.error("無法設定使用者認證: {}", e.getMessage());
 	        } finally {
 	            filterChain.doFilter(request, response);

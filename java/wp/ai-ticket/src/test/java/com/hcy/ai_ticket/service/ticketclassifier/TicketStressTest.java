@@ -41,13 +41,13 @@ public class TicketStressTest {
 				texts.add(line[0]);
 			}
 		}
-		TRACE.message("成功讀取 " + texts.size() + " 筆測試資料，準備發送壓力測試...");
+		LOGGER.info("成功讀取 " + texts.size() + " 筆測試資料，準備發送壓力測試...");
 
 		String traceId = UUID.randomUUID().toString().replace("-", "");
 		MDC.put(TRACE_ID, traceId);
 
 		String globalTraceId = ticketClassifierService.predictAndSave(texts);
-		TRACE.message("壓力測試已啟動，Global TraceID: " + globalTraceId);
+		LOGGER.info("壓力測試已啟動，Global TraceID: " + globalTraceId);
 
 		Thread.sleep(30 * 1000);
 	}
@@ -68,14 +68,18 @@ public class TicketStressTest {
 		}
 
 	    for (int i = 0; i < numberOfUsers; i++) {
-	        final int userIndex = i; 
+	        final int userIndex = i;
+//	        LOGGER.info("用戶 User-{}", i);
+//	        if (i > 0) {
+//	            Thread.sleep(10 * 1000); 
+//	        }
 	        executor.execute(() -> {
 
 	            String traceId = UUID.randomUUID().toString().replace("-", "").substring(0, 8) + "-User" + userIndex;
 	            
 	            try {
 	                MDC.put("traceId", traceId);
-	                TRACE.message("用戶 {} 開始提交 {} 筆工單", userIndex, texts.size());
+	                LOGGER.info("用戶 {} 開始提交 {} 筆工單", userIndex, texts.size());
 	                
 	                ticketClassifierService.predictAndSave(texts);
 	                
@@ -90,8 +94,8 @@ public class TicketStressTest {
 
 	    latch.await(); 
 	    executor.shutdown();
-	    TRACE.message("所有用戶請求提交完成，等待背景 AI 任務處理...");
-	    Thread.sleep(60000); 
+	    LOGGER.info("所有用戶請求提交完成，等待背景任務處理...");
+	    Thread.sleep(30 * 1000); 
 	}
 
 }

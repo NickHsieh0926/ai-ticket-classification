@@ -51,6 +51,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/ws-ticket/**").permitAll()
                 .requestMatchers("/error").permitAll() 
                 .requestMatchers("/api/tickets/**").authenticated() 
                 .anyRequest().authenticated()               

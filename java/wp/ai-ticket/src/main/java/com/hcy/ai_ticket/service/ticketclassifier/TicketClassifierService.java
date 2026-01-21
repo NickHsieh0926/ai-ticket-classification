@@ -26,7 +26,7 @@ public class TicketClassifierService {
         for (int i = 0; i < contents.size(); i++) {
         	
         	try {
-        		asyncTicketService.runAiPredictionTask(contents.get(i), traceId, i + 1);
+        		asyncTicketService.runAiPredictionTask(contents.get(i), traceId, i + 1, contents.size());
         	}catch (Exception e) {
         		LOGGER.error("提交第 {} 筆任務時發生錯誤: {}", i, e.getMessage());
             }

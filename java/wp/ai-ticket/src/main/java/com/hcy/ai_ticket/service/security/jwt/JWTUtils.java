@@ -1,6 +1,7 @@
 package com.hcy.ai_ticket.service.security.jwt;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Date;
 
 import javax.crypto.SecretKey;
@@ -8,6 +9,7 @@ import javax.crypto.SecretKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 import com.hcy.ai_ticket.util.DebugTrace;
@@ -68,5 +70,10 @@ public class JWTUtils {
         	LOGGER.error("JWT 宣告字串為空: {}", e.getMessage());
         }
         return false;
+    }
+    
+    public UsernamePasswordAuthenticationToken getAuthentication(String token) {
+        String username = getUserNameFromJwtToken(token);
+        return new UsernamePasswordAuthenticationToken(username, null, new ArrayList<>());
     }
 }

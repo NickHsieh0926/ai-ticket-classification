@@ -30,7 +30,7 @@ const batchInput = ref('')
 function onSearchSingle() {
     if (!singleInput.value) return
     emits('search', { text: singleInput.value })
-    singleInput.value = '' // 清空
+    singleInput.value = '' 
 }
 
 // 批次預測
@@ -42,7 +42,7 @@ function onSearchBatch() {
 
     if (!texts.length) return
     emits('search', { texts })
-    batchInput.value = '' // 清空
+    batchInput.value = '' 
 }
 </script>
 

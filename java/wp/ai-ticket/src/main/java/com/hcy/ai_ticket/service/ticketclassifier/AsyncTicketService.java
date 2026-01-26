@@ -41,10 +41,6 @@ public class AsyncTicketService {
 	@Async("ticketExecutor")
 	public void runAiPredictionTask(String content, String traceId, int itemIndex, int total) {
 
-		if (MDC.get("traceId") == null && traceId != null) {
-			MDC.put("traceId", traceId);
-		}
-
 		String spanId = traceId + "-" + itemIndex;
 		MDC.put("spanId", spanId);
 

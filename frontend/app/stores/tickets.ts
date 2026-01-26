@@ -16,8 +16,8 @@ export const useTicketsStore = defineStore('tickets', {
         error: null as string | null,
 
         // 新增 filter state
-        filterLabel: "" as string,      // 篩選分類
-        minConfidence: 0,               // 最低信心度
+        filterLabel: "" as string,      
+        minConfidence: 0,              
     }),
 
     getters: {
@@ -72,7 +72,7 @@ export const useTicketsStore = defineStore('tickets', {
         async predictOne(text: string) {
             this.loading = true
             try {
-                const { data } = await api.post('/tickets/predict', { text })
+                const { data } = await api.post('/api/tickets/predict', { text })
                 this.tickets.push(data)
             } finally {
                 this.loading = false
@@ -81,7 +81,7 @@ export const useTicketsStore = defineStore('tickets', {
         async predictBatch(texts: string[]) {
             this.loading = true
             try {
-                const { data } = await api.post('/tickets/predict/batch', { texts })
+                const { data } = await api.post('/api/tickets/predict/batch', { texts })
                 this.tickets.push(...data)
             } finally {
                 this.loading = false
@@ -92,7 +92,7 @@ export const useTicketsStore = defineStore('tickets', {
         },
         setFilterLabel(label: string) {
             this.filterLabel = label
-            this.page = 1 // 改 filter 時回到第一頁
+            this.page = 1 
         },
         setMinConfidence(value: number) {
             this.minConfidence = value

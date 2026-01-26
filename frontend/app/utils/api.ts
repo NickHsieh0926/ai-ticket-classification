@@ -1,20 +1,39 @@
 import axios from "axios";
 
 export const api = axios.create({
-  timeout: 10000,
+  timeout: 30000, 
 });
 
-// 攔截器：動態獲取當前環境應用的 Base URL
+// 請求攔截器
 api.interceptors.request.use((config) => {
   const runtimeConfig = useRuntimeConfig();
-  
+  const authStore = useAuthStore(); 
+
   if (import.meta.server) {
-    //執行 (SSR)，連線到 Docker 內部名稱
     config.baseURL = runtimeConfig.apiInternalUrl;
   } else {
-    //瀏覽器端執行，連線到外部可存取的 URL
     config.baseURL = runtimeConfig.public.apiBaseUrl;
   }
-  
+
+  if (authStore.token) {
+    config.headers.Authorization = `Bearer ${authStore.token}`;
+  }
+
   return config;
+}, (error) => {
+  return Promise.reject(error);
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      const authStore = useAuthStore();
+      authStore.logout(); 
+      if (!import.meta.server) {
+        alert("登入逾時，請重新登入");
+      }
+    }
+    return Promise.reject(error);
+  }
+);

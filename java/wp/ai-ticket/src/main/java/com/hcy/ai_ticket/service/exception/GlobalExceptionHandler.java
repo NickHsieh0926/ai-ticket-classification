@@ -36,6 +36,15 @@ public class GlobalExceptionHandler {
 		
 		return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
 	}
+	
+	@ExceptionHandler(org.springframework.core.task.TaskRejectedException.class)
+    public ResponseEntity<String> handleTaskRejectedException(Exception e) {
+		LOGGER.warn("Dispatcher 執行緒池已滿，拒絕新要求");
+        
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body("系統繁忙，請稍後再試 (System Busy)");
+    }
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex) {

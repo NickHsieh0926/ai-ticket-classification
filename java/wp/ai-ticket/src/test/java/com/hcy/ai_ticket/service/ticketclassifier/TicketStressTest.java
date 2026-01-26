@@ -46,7 +46,7 @@ public class TicketStressTest {
 		String traceId = UUID.randomUUID().toString().replace("-", "");
 		MDC.put(TRACE_ID, traceId);
 
-		String globalTraceId = ticketClassifierService.predictAndSave(texts);
+		String globalTraceId = ticketClassifierService.predictAndSave(texts,traceId);
 		LOGGER.info("壓力測試已啟動，Global TraceID: " + globalTraceId);
 
 		Thread.sleep(30 * 1000);
@@ -81,7 +81,7 @@ public class TicketStressTest {
 	                MDC.put("traceId", traceId);
 	                LOGGER.info("用戶 {} 開始提交 {} 筆工單", userIndex, texts.size());
 	                
-	                ticketClassifierService.predictAndSave(texts);
+	                ticketClassifierService.predictAndSave(texts,traceId);
 	                
 	            } catch (Exception e) {
 	            	LOGGER.error("用戶 {} 提交失敗: {}", userIndex, e.getMessage());

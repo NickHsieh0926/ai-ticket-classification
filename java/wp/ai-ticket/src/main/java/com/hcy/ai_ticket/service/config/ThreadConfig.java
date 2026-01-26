@@ -12,18 +12,47 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @EnableAsync
 public class ThreadConfig {
 
-	@Bean("ticketExecutor")
+//	@Bean("ticketExecutor")
+//	public Executor ticketExecutor() {
+//		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+//		executor.setCorePoolSize(10);
+//		executor.setMaxPoolSize(20);
+//		executor.setQueueCapacity(100);
+//		executor.setThreadNamePrefix("AI-Task-");
+//		executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+//
+//		executor.setTaskDecorator(new MdcTaskDecorator());
+//		executor.initialize();
+//		return executor;
+//	}
+	
+	@Bean(name = "ticketExecutor")
 	public Executor ticketExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(10); 
-		executor.setMaxPoolSize(20); 
+		executor.setCorePoolSize(10);
+		executor.setMaxPoolSize(20);
 		executor.setQueueCapacity(100); 
 		executor.setThreadNamePrefix("AI-Task-");
 		executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-
+		
 		executor.setTaskDecorator(new MdcTaskDecorator());
 		executor.initialize();
 		return executor;
 	}
+
+	@Bean(name = "dispatcherExecutor")
+	public Executor dispatcherExecutor() {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(5);
+		executor.setMaxPoolSize(10);
+		executor.setQueueCapacity(50); 
+		executor.setThreadNamePrefix("CSV-Dispatcher-");
+		executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
+		
+		executor.initialize();
+		return executor;
+	}
+
+
 
 }

@@ -8,17 +8,19 @@ let stompClient: Client | null = null
 export const useTicketSocket = () => {
     const authStore = useAuthStore()
     const taskStore = useTaskStore()
+    const config = useRuntimeConfig()
+    const baseURL = config.public.apiBaseUrl
 
     const connect = () => {
         if (import.meta.server || stompClient?.active || !authStore.token) return
 
         // const socket = new SockJS('/ws-ticket')
-        const socket = new SockJS('http://localhost:8080/ws-ticket')
+        const socket = new SockJS(baseURL + '/ws-ticket')
         stompClient = new Client({
             webSocketFactory: () => socket,
             connectHeaders: { Authorization: `Bearer ${authStore.token}` },
             reconnectDelay: 5000,
-            debug: (msg) => console.log('STOMP Debug:', msg), // 開啟除錯日誌
+            // debug: (msg) => console.log('STOMP Debug:', msg), // 開啟除錯
             onConnect: () => {
                 console.log('STOMP 連線成功')
                 Object.keys(taskStore.activeTasks).forEach(id => subscribeToTask(id))

@@ -18,6 +18,10 @@
                 <NuxtLink to="/upload" class="block px-3 py-2 rounded hover:bg-gray-100">
                     upload
                 </NuxtLink>
+
+                <NuxtLink to="/Dashboard" class="block px-3 py-2 rounded hover:bg-gray-100">
+                    Dashboard
+                </NuxtLink>
             </nav>
         </aside>
 
@@ -42,7 +46,8 @@
                         <div class="flex justify-between items-end">
                             <span class="text-[10px] text-gray-400">{{ task.percentage }}% ({{ task.current }}/{{
                                 task.total }})</span>
-                            <button v-if="task.status === 'COMPLETED'" @click="navigateTo(`/dashboard?traceId=${task.traceId}`)"
+                            <button v-if="task.status === 'COMPLETED'"
+                                @click="navigateTo(`/dashboard?traceId=${task.traceId}`)"
                                 class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold">
                                 查看分析圖表
                             </button>

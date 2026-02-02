@@ -11,7 +11,7 @@
 
         <AnalysisDashboard  v-if="tickets.length" />
 
-        <TicketCharts v-if="tickets.length" :categoryChart="chartData" />
+        <!-- <TicketCharts v-if="tickets.length" :categoryChart="chartData" /> -->
 
         <div v-if="loading" class="text-gray-500">Loading...</div>
         <div v-if="error" class="text-red-500">{{ error }}</div>

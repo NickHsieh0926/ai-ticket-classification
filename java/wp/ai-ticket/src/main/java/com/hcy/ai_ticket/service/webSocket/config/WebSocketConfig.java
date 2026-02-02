@@ -16,6 +16,7 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.web.socket.config.WebSocketMessageBrokerStats;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -23,6 +24,8 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 import com.hcy.ai_ticket.service.security.jwt.JWTUtils;
 import com.hcy.ai_ticket.util.DebugTrace;
 import com.hcy.ai_ticket.web.controller.config.WebConfig;
+
+import jakarta.annotation.PostConstruct;
 
 @Configuration
 @EnableWebSocketMessageBroker

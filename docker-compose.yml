@@ -12,18 +12,64 @@ services:
       - /etc/localtime:/etc/localtime:ro
     ports:
       - "8000:8000"
+    networks:
+      - app-network
 
   postgres:
     image: postgres:16-alpine
-    container_name: psql
+    container_name: postgres
     environment:
-      POSTGRES_USER: sa
-      POSTGRES_PASSWORD: p@ssw0rd
-      POSTGRES_DB: ai_ticket
+      - POSTGRES_USER=sa
+      - POSTGRES_PASSWORD=p@ssw0rd
+      - POSTGRES_DB=ai_ticket
+      - TZ=Asia/Taipei
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./DB:/docker-entrypoint-initdb.d:ro
+    networks:
+      - app-network
       
+  java-api:
+    build:
+      context: ./java/wp/ai-ticket
+      dockerfile: Dockerfile
+    container_name: java-api
+    environment:
+      - JAVA_TOOL_OPTIONS=-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector -Duser.timezone=Asia/Taipei
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=ai_ticket
+      - DB_USERNAME=sa
+      - DB_PASSWORD=p@ssw0rd
+      - TZ=Asia/Taipei
+    ports:
+      - "8080:8080"
+    depends_on:
+      - fastapi
+      - postgres
+    networks:
+      - app-network
+      
+  nuxt-app:
+    build:
+      context: ./frontend 
+      dockerfile: Dockerfile
+    container_name: nuxt-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NUXT_API_INTERNAL_URL=http://java-api:8080
+      - NUXT_PUBLIC_API_BASE_URL=http://localhost:8080
+    depends_on:
+      - java-api
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
 volumes:
   postgres_data:

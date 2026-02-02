@@ -22,10 +22,12 @@
     </Appenders>
 
     <Loggers>
+    	<!--
         <Logger name="org.springframework.security" level="DEBUG" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="RollingFile"/>
         </Logger>
+        -->
 
         <Logger name="com.hcy.ai_ticket.web.controller.config" level="DEBUG" additivity="false">
             <AppenderRef ref="Console"/>

@@ -27,11 +27,11 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 || error.response?.status === 403) {
       const authStore = useAuthStore();
       authStore.logout(); 
       if (!import.meta.server) {
-        alert("登入逾時，請重新登入");
+        alert("登入逾時或權限不足，請重新登入");
       }
     }
     return Promise.reject(error);

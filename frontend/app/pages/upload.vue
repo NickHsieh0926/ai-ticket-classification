@@ -10,7 +10,7 @@
                 </a>
             </div>
 
-            <input type="file" @change="onFileChange" accept=".csv" :disabled="isUploading"
+            <input type="file" @change="onFileChange" accept=".csv" :disabled="isUploading" ref="fileInputRef"
                 class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
 
             <div v-if="selectedFile" class="mt-4 p-3 bg-gray-50 rounded-lg text-left border border-gray-100">
@@ -42,6 +42,7 @@
 const { subscribeToTask } = useTicketSocket()
 const isUploading = ref(false)
 const selectedFile = ref<File | null>(null)
+const fileInputRef = ref<HTMLInputElement | null>(null)
 
 const onFileChange = (event: Event) => {
     const target = event.target as HTMLInputElement
@@ -67,8 +68,11 @@ const submitUpload = async () => {
 
             selectedFile.value = null
 
+            if (fileInputRef.value) {
+                fileInputRef.value.value = ''
+            }
+
             alert('分析任務已成功啟動！')
-            navigateTo('/')
         }
     } catch (error) {
         console.error('上傳失敗:', error)

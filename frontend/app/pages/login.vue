@@ -1,7 +1,7 @@
 <template>
     <div class="flex items-center justify-center min-h-screen bg-slate-50">
         <div class="p-8 bg-white shadow-2xl rounded-3xl w-full max-w-md border border-gray-100">
-            <h1 class="text-3xl font-extrabold mb-8 text-center text-slate-800">AI 分析系統</h1>
+            <h1 class="text-3xl font-extrabold mb-8 text-center text-slate-800">AI 工單分析系統</h1>
             <form @submit.prevent="handleLogin" class="space-y-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">帳號</label>
@@ -26,6 +26,8 @@
 
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/useAuthStore'
+
+definePageMeta({ layout: 'defaultlogin' });
 
 const authStore = useAuthStore()
 const form = ref({ username: '', password: '' });

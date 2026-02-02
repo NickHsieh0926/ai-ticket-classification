@@ -23,11 +23,11 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:3000","http://frontend:3000")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // 必須包含 OPTIONS
-                .allowedHeaders("*") // 允許所有 Header (包含 Authorization)
-                .allowCredentials(true) // 允許攜帶 Cookie
-                .maxAge(3600); // 預檢請求的快取時間（秒）
+                .allowedOrigins("http://localhost:3000","http://nuxt-app:3000")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") 
+                .allowedHeaders("*") 
+                .allowCredentials(true) 
+                .maxAge(3600); 
     }
 
     // MDC Trace 攔截器

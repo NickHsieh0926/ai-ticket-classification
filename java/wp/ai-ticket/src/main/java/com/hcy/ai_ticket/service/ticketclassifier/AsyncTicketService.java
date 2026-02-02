@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -24,8 +25,8 @@ public class AsyncTicketService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AsyncTicketService.class);
 	private static final DebugTrace TRACE = new DebugTrace(LOGGER, LOGGER.isDebugEnabled());
 
-//  private final String endpoint = "http://fastapi:8000/predict";
-	private final String endpoint = "http://localhost:8000/predict";
+    @Value("${endpoint}")
+	private String endpoint;
 
 	private final Map<String, TaskProgress> progressMap = new ConcurrentHashMap<>();
 
@@ -40,6 +41,10 @@ public class AsyncTicketService {
 
 	@Async("ticketExecutor")
 	public void runAiPredictionTask(String content, String traceId, int itemIndex, int total) {
+		
+		if (MDC.get("traceId") == null && traceId != null) {
+			MDC.put("traceId", traceId);
+		}
 
 		String spanId = traceId + "-" + itemIndex;
 		MDC.put("spanId", spanId);

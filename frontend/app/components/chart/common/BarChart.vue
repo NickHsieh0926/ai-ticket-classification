@@ -1,49 +1,61 @@
 <template>
-  <canvas ref="canvas" class="w-full h-64"></canvas>
+  <v-chart class="chart" :option="chartOption" autoresize />
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
-import { Chart, registerables } from "chart.js";
+import { computed } from "vue";
+import { use } from "echarts/core";
+import { CanvasRenderer } from "echarts/renderers";
+import { BarChart } from "echarts/charts";
+import { GridComponent, TooltipComponent } from "echarts/components";
+import VChart from "vue-echarts";
 
-Chart.register(...registerables);
-
-const canvas = ref<HTMLCanvasElement | null>(null);
+use([CanvasRenderer, BarChart, GridComponent, TooltipComponent]);
 
 const props = defineProps<{
   labels: string[];
   values: number[];
 }>();
 
-let chartInstance: Chart | null = null;
-
-onMounted(() => renderChart());
-
-watch([() => props.labels, () => props.values], () => {
-  renderChart();
-});
-
-function renderChart() {
-  if (!canvas.value) return;
-  if (chartInstance) chartInstance.destroy();
-
-  chartInstance = new Chart(canvas.value, {
-    type: "bar",
-    data: {
-      labels: props.labels,
-      datasets: [
-        {
-          label: "預測信心度",
-          data: props.values,
-          backgroundColor: "#3b82f6",
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true } },
-    },
-  });
-}
+const chartOption = computed(() => ({
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: { type: 'shadow' }
+  },
+  grid: {
+    top: '10%',
+    left: '3%',
+    right: '4%',
+    bottom: '3%',
+    containLabel: true
+  },
+  xAxis: {
+    type: 'category',
+    data: props.labels,
+    axisTick: { alignWithLabel: true }
+  },
+  yAxis: {
+    type: 'value',
+    name: '工單量'
+  },
+  series: [
+    {
+      name: '預測信心度',
+      type: 'bar',
+      data: props.values,
+      barWidth: '60%',
+      itemStyle: {
+        color: '#3b82f6',
+        borderRadius: [4, 4, 0, 0]
+      }
+    }
+  ]
+}));
 </script>
+
+<style scoped>
+.chart {
+  height: 256px;
+  width: 100%;
+}
+</style>

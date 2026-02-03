@@ -41,7 +41,7 @@
 
 ---
 
-## 視覺化展示 (Features)
+## 視覺化展示 
 
 - **智能儀表板**: 實時呈現工單分類分布 (Bar Chart) 與模型信心度分布。
 - **批量操作**: 支援數百筆工單一鍵分類，並透過 TraceID 進行批次追蹤。
@@ -49,7 +49,17 @@
 
 ---
 
-## 📦 快速啟動 (Quick Start)
+## 系統架構設計 
+
+### 時序圖
+![Sequence Diagram](./UML/images/Upload_Sequence_Diagram.jpg)
+
+### 類別圖
+![Class Diagram](./UML/images/Upload_Class_Diagram.jpg)
+
+---
+
+## 📦 快速啟動 
 
 ### 前置需求
 

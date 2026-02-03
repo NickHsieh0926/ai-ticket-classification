@@ -66,6 +66,7 @@
 - Docker & Docker Compose
 - WSL
 - Java 17 (本地開發用) / Python 3.10 (本地開發用)
+- 本地開發使用GUI介面，請開放DB Port號 : `docker-compose.yml`
 
 ### 部署步驟
 
@@ -73,6 +74,6 @@
     
     `git clone https://github.com/NickHsieh0926/ai-ticket-classification.git`
     
-2. **一鍵啟動 (Docker Compose)**
+2. **一鍵啟動 **
     
     `docker-compose up --build -d`

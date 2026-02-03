@@ -8,11 +8,11 @@
 
 ### 1. 流程時序圖
 
-(./UML/images/Upload_Sequence_Diagram.jpg)
+![流程時序圖](./UML/images/Upload_Sequence_Diagram.jpg)
 
 ### 2. 結構類別圖
 
-(./UML/images/Upload_Class_Diagram.jpg)
+![結構類別圖](./UML/images/Upload_Class_Diagram.jpg)
 
 ---
 

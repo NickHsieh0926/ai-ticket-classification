@@ -1,79 +1,70 @@
-# AI-Ticket-Classifier: AI工單分類系統
+# AI-Ticket-Classifier: 高併發AI工單分類系統
 
-本專案是一個全棧式 AI工單分類系統，從數據科學訓練模擬 (Python/Jupyter) 走向生產級架構 (Java Spring Boot/FastAPI)。在 V1.1 版本中，引入了**分散式追蹤、非同步高併發優化與 WebSocket 即時通訊**，旨在解決大規模工單處理中的效能瓶頸與除錯效率。
+本專案是一個從數據科學訓練模擬走向**工業級架構**的全棧系統。在 V1.1 版本中，解決了分散式系統中的**全鏈路日誌追蹤**、**非同步效能瓶頸**與**網路安全**。
 
 ---
 
-## 系統架構演進
+## 系統架構設計
 
-### **V1.0：基礎功能實作**
+### 1. 流程時序圖
 
-- **AI Engine**: 基於 Scikit-learn 的 NLP 分類流水線（TF-IDF + LR）。
-- **Serving**: FastAPI 封裝模型 API，實作 Python/Java 跨系統通訊。
-- **Workflow**: 前端發送請求 -> Java 轉發 Python -> 返回結果 -> 前端渲染。
+(./UML/images/Upload_Sequence_Diagram.jpg)
 
-### **V1.1：架構升級**
+### 2. 結構類別圖
 
-- **全鏈路日誌** : 實作跨服務 **TraceID (MDC)**，串接 Java 至 Python 的所有 Log。
-- **非同步架構** : 引入 `ThreadPoolExecutor` 與 `TaskDecorator`，解決 AI 推論阻塞問題並修正執行緒切換間的上下文遺失。
-- **即時反饋 (UX)**: 整合 **WebSocket**，實現「非同步處理、即時推送」。
+(./UML/images/Upload_Class_Diagram.jpg)
+
+---
+
+## 技術演進與關鍵亮點
+
+### 防禦架構
+
+- **內網隔離**：FastAPI 與 PostgreSQL 移除公網映射 (Port Mapping)，完全隱藏於 Docker 私有網路。
+- **入口驗證**：Java Spring Boot 作為唯一 Gateway，強制執行 **JWT 身分驗證**。
+
+### 非同步效能優化與壓測驗證
+
+- **MDC 跨執行緒追蹤**：實作 `MdcTaskDecorator` 處理 `@Async` 執行緒切換導致的 TraceID 遺失問題，達成 **100% 全鏈路日誌追蹤**。
+- **壓測數據證明**：
+    - **情境**：模擬連續發送 5 批次（每批 1.6 萬筆，總計 8 萬筆資料）。
+    - **表現**：系統全程無崩潰，**吞吐量達 206 筆/秒**。
+    - **架構決策**：基於數據實測，目前的 `ThreadPoolExecutor` 已能覆蓋業務需求，故採簡約穩定的原生執行緒池設計。
+
+### 即時反饋系統
+
+- 整合 **WebSocket**，實作「請求立即響應、背景處理、結果主動推送」。
 
 ---
 
 ## 技術棧
 
-| **領域** | **技術選型** |
-| --- | --- |
-| **AI / Serving** | Python 3.10, FastAPI, Scikit-learn, Pandas, Joblib |
-| **Backend** | Java 17, Spring Boot 4.x, **Spring Security (JWT)**, PostgreSQL |
-| **Frontend** | **Nuxt 4**, Vue 3, Tailwind CSS, Pinia, EChart.js |
-| **Infrastructure** | Docker, Docker Compose, Log4j2 (MDC) |
+| **領域** | **技術選型** | **系統應用** |
+| --- | --- | --- |
+| **AI / Serving** | Python, FastAPI, Scikit-learn | NLP 分類流水線 (TF-IDF + LR) |
+| **Backend** | Java 17, Spring Boot 3.x | Spring Security, 多執行緒併發控制 |
+| **Frontend** | Nuxt 4, Vue 3, EChart.js | 響應式儀表板、即時監控視窗 |
+| **Infrastructure** | Docker, Docker Compose | 服務容器化、私有網絡隔離 |
 
 ---
 
-## 核心技術實作
-
-### 1. 全鏈路 MDC 追蹤
-
-### 2. 非同步併發控制
-
-### 3. WebSocket 批次處理監控
-
----
-
-## 視覺化展示 
-
-- **智能儀表板**: 實時呈現工單分類分布 (Bar Chart) 與模型信心度分布。
-- **批量操作**: 支援數百筆工單一鍵分類，並透過 TraceID 進行批次追蹤。
-- **安全性**: 全 API 接口受 JWT 保護，確保數據存取權限。
-
----
-
-## 系統架構設計 
-
-### 時序圖
-![Sequence Diagram](./UML/images/Upload_Sequence_Diagram.jpg)
-
-### 類別圖
-![Class Diagram](./UML/images/Upload_Class_Diagram.jpg)
-
----
-
-## 📦 快速啟動 
+## 快速啟動
 
 ### 前置需求
 
-- Docker & Docker Compose
-- WSL
-- Java 17 (本地開發用) / Python 3.10 (本地開發用)
-- 本地開發使用GUI介面，請開放DB Port號 : `docker-compose.yml`
+- **Docker & Docker Compose**
+- **WSL2** (Windows 環境)
 
-### 部署步驟
+### 啟動步驟
 
-1. **clone 專案**
-    
-    `git clone https://github.com/NickHsieh0926/ai-ticket-classification.git`
-    
-2. **一鍵啟動 **
-    
-    `docker-compose up --build -d`
+```bash
+# 1. Clone the repository
+git clone https://github.com/NickHsieh0926/ai-ticket-classification.git
+
+# 2. Start the services (Production Mode)
+# 此模式下 FastAPI (8000) 與 DB (5432) 不會對外開放
+docker-compose up --build -d
+```
+
+> 若需於本地使用 GUI 工具 (如 DBeaver、pgAdmin) 連接資料庫，請於 `docker-compose.yml` 中開啟 `postgres` 服務的 `ports` 註解。
+>

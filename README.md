@@ -64,6 +64,13 @@ git clone https://github.com/NickHsieh0926/ai-ticket-classification.git
 # 2. Start the services (Production Mode)
 # 此模式下 FastAPI (8000) 與 DB (5432) 不會對外開放
 docker-compose up --build -d
+
+# 3. Login AI-Ticket Server
+http://localhost:3000/login
+
+Acc. : admin
+Pwd. : 123456
+
 ```
 
 > 若需於本地使用 GUI 工具 (如 DBeaver、pgAdmin) 連接資料庫，請於 `docker-compose.yml` 中開啟 `postgres` 服務的 `ports` 註解。

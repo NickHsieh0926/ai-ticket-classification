@@ -9,12 +9,8 @@ api.interceptors.request.use((config) => {
   const runtimeConfig = useRuntimeConfig();
   const authStore = useAuthStore(); 
 
-  if (import.meta.server) {
-    config.baseURL = runtimeConfig.apiInternalUrl;
-  } else {
-    config.baseURL = runtimeConfig.public.apiBaseUrl;
-  }
-
+  config.baseURL = runtimeConfig.public.apiBaseUrl;
+  
   if (authStore.token) {
     config.headers.Authorization = `Bearer ${authStore.token}`;
   }

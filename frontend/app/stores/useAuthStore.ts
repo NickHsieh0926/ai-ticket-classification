@@ -37,7 +37,7 @@ export const useAuthStore = defineStore('auth', {
             if (!this.token) throw new Error('No Token');
 
             const config = useRuntimeConfig()
-            const baseURL = import.meta.server ? config.apiInternalUrl : config.public.apiBaseUrl
+            const baseURL = config.public.apiBaseUrl
 
             try {
                 const response = await $fetch<{ user: string }>('/api/auth/getUserInfo', {

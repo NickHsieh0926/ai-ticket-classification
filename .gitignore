@@ -2,10 +2,11 @@
 .ipynb_checkpoints/
 
 # Python
-__pycache__/
+**/__pycache__/
 *.pyc
+llm/models/*.joblib
 
-# Virtual Environment
+# Local env files
 .env
 .venv
 venv/
@@ -21,3 +22,6 @@ docker/*.tar
 /logs/
 *.log
 **/logs/
+
+# Nuxt dev/build outputs
+frontend/.output/

@@ -15,6 +15,9 @@ venv/
 .DS_Store
 Thumbs.db
 
+# IDE
+.vscode/
+
 # Docker artifacts
 docker/*.tar
 

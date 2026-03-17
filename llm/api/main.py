@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing import List
 from utils.logger_config import trace_id_var, span_id_var
 from src.predict import predict_text, predict_batch
+from src.llm_predict import llm_predict_text
 
 
 def download_nltk_resources():
@@ -48,6 +49,10 @@ class PredictBatchRequest(BaseModel):
     texts: List[str]
 
 
+class LlmPredictRequest(BaseModel):
+    text: str
+
+
 # Endpoints
 @app.get("/")
 def root():
@@ -67,3 +72,9 @@ def batch_predict(request: PredictBatchRequest):
     logger.info("正在執行 AI predict_batch 運算...")
     results = predict_batch(request.texts)
     return results
+
+@app.post("/llm_predict")
+def llm_predict(request: LlmPredictRequest):
+    logger.info("正在執行 LLM predict 運算...")
+    result = llm_predict_text(request.text)
+    return result

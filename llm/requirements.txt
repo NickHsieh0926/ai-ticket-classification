@@ -5,3 +5,6 @@ joblib
 numpy
 pandas
 nltk
+openai
+google-generativeai
+python-dotenv

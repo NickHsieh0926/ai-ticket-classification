@@ -20,11 +20,3 @@ Thumbs.db
 
 # Docker artifacts
 docker/*.tar
-
-# Log Files
-/logs/
-*.log
-**/logs/
-
-# Nuxt dev/build outputs
-frontend/.output/

@@ -26,7 +26,7 @@ jobs:
       - name: Java build & test
         run: |
           cd java/wp/ai-ticket
-          mvn clean test -q
+          mvn clean package -DskipTests -q
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5

@@ -29,3 +29,21 @@ CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);
 INSERT INTO users (username, password, role) 
 VALUES ('admin', '$2a$10$viOlnU9WQg0QLfGcL2COY.hUQ8fQr5KU1VtIfNrm.lbOURZ7KkXkS', 'ADMIN')
 ON CONFLICT (username) DO NOTHING;
+
+-- pgvector 
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Embedding 資料表（RAG）
+CREATE TABLE IF NOT EXISTS ticket_embeddings (
+  id          BIGSERIAL PRIMARY KEY,
+  trace_id    VARCHAR(36),
+  content     TEXT NOT NULL,
+  embedding   vector(384),
+  category    VARCHAR(50),
+  created_at  TIMESTAMP DEFAULT NOW()
+);
+
+-- HNSW 索引（近似最近鄰搜尋）
+CREATE INDEX IF NOT EXISTS idx_ticket_embeddings_hnsw
+  ON ticket_embeddings
+  USING hnsw (embedding vector_cosine_ops);

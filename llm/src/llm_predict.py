@@ -2,7 +2,10 @@ import os
 import json
 import re
 import google.generativeai as genai
+import logging
+from rag.retriever import retrieve_similar
 
+logger = logging.getLogger(__name__)
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel("gemini-2.5-flash-lite")
 
@@ -10,17 +13,32 @@ CATEGORIES = ["Billing", "Technical", "Account", "General"]
 
 
 def llm_predict_text(text: str) -> dict:
+    logger.info("執行 llm_predict_text ")
+
+    # RAG
+    similar = retrieve_similar(text, top_k=3)
+    rag_context = ""
+    if similar:
+        examples = "\n".join(
+            [
+                f'- "{s["content"]}" → {s["category"]} (similarity: {s["similarity"]:.2f})'
+                for s in similar
+            ]
+        )
+        rag_context = f"\nHere are similar tickets for reference:\n{examples}\n"
+
     prompt = f"""
 You are an IT support ticket classifier.
 Classify the following ticket into exactly one of these categories:
 {", ".join(CATEGORIES)}
-
+{rag_context}
 Ticket: {text}
 
 Reply in this JSON format only:
 {{"predicted_label": "<category>", "confidence": <0.0-1.0>, "reasoning": "<brief reason>"}}
 """
     try:
+        logger.info("LLM 請求...")
         response = model.generate_content(prompt)
         json_str = re.search(r"\{.*\}", response.text, re.DOTALL).group()
         parsed = json.loads(json_str)
@@ -30,6 +48,7 @@ Reply in this JSON format only:
             "confidence": str(parsed.get("confidence", 0.0)),
             "reasoning": parsed.get("reasoning", ""),
             "model": "gemini-2.5-flash-lite",
+            "rag_used": len(similar) > 0,
         }
     except Exception as e:
         result = {
@@ -38,6 +57,7 @@ Reply in this JSON format only:
             "confidence": "0.0",
             "reasoning": f"LLM error: {str(e)}",
             "model": "gemini-2.5-flash-lite",
+            "rag_used": False,
         }
 
     return result

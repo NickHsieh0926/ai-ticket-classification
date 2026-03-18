@@ -1,11 +1,12 @@
 import logging
 import nltk
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 from typing import List
 from utils.logger_config import trace_id_var, span_id_var
 from src.predict import predict_text, predict_batch
 from src.llm_predict import llm_predict_text
+from rag.retriever import store_embedding
 
 
 def download_nltk_resources():
@@ -62,19 +63,23 @@ def root():
 
 @app.post("/predict")
 def single_predict(request: PredictRequest):
-    logger.info("正在執行 AI predict 運算...")
+    logger.info("正在執行 ML predict 運算...")
     result = predict_text(request.text)
     return result
 
 
 @app.post("/predict_batch")
 def batch_predict(request: PredictBatchRequest):
-    logger.info("正在執行 AI predict_batch 運算...")
+    logger.info("正在執行 ML predict_batch 運算...")
     results = predict_batch(request.texts)
     return results
 
+
 @app.post("/llm_predict")
-def llm_predict(request: LlmPredictRequest):
-    logger.info("正在執行 LLM predict 運算...")
+def llm_predict(request: LlmPredictRequest, background_tasks: BackgroundTasks):
+    logger.info("正在執行 LLM + RAG predict 運算...")
     result = llm_predict_text(request.text)
+    background_tasks.add_task(
+        store_embedding, trace_id_var.get(), request.text, result["predicted_label"]
+    )
     return result

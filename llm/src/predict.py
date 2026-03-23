@@ -13,15 +13,16 @@ model = joblib.load(MODEL_PATH)
 def predict_text(text: str) -> Dict:
     text_clean = clean_text(text)
 
-    # confidence
+    mapped_label = None   
+    confidence = None     
     try:
         probs = model.predict_proba([text_clean])[0]
         pred_idx = probs.argmax()
         confidence = str(round(float(probs[pred_idx]), 2))
         pred_label = model.classes_[pred_idx]
         mapped_label = CATEGORY_MAPPING.get(pred_label, pred_label)
-    except:
-        confidence = None
+    except Exception as e:          
+        print(f"[ERROR] predict failed: {e}")   
 
     return {"input": text, "predicted_label": mapped_label, "confidence": confidence}
 

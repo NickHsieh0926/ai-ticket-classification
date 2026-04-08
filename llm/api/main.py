@@ -1,5 +1,7 @@
 import logging
 import nltk
+import asyncio
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 from typing import List
@@ -7,6 +9,25 @@ from utils.logger_config import trace_id_var, span_id_var
 from src.predict import predict_text, predict_batch
 from src.llm_predict import llm_predict_text
 from rag.retriever import store_embedding
+
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    task = asyncio.create_task(start_consumer())
+    await asyncio.sleep(1) #讓 start_consumer 有時間可以啟動
+    yield
+    task.cancel()
+
+
+async def start_consumer():
+    try:
+        from worker.mq_consumer import main as consumer_main
+
+        await consumer_main()
+    except Exception as e:
+        logger.error(f"[Consumer] 啟動失敗: {e}", exc_info=True)
 
 
 def download_nltk_resources():
@@ -17,14 +38,14 @@ def download_nltk_resources():
 
         lemmatizer = WordNetLemmatizer()
         lemmatizer.lemmatize("test")
-        print("NLTK resources loaded successfully.")
+        logger.info("NLTK resources loaded successfully.")
     except Exception as e:
-        print(f"Error loading NLTK: {e}")
+        logger.error(f"Error loading NLTK: {e}")
 
 
 download_nltk_resources()
-logger = logging.getLogger(__name__)
-app = FastAPI(title="Ticket Classification API")
+
+app = FastAPI(title="Ticket Classification API", lifespan=lifespan)
 
 
 # Middleware

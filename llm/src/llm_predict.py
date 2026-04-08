@@ -12,7 +12,7 @@ model = genai.GenerativeModel("gemini-2.5-flash-lite")
 CATEGORIES = ["Billing", "Technical", "Account", "General"]
 
 
-def llm_predict_text(text: str) -> dict:
+async def llm_predict_text(text: str) -> dict:
     logger.info("執行 llm_predict_text ")
 
     # RAG
@@ -39,7 +39,7 @@ Reply in this JSON format only:
 """
     try:
         logger.info("LLM 請求...")
-        response = model.generate_content(prompt)
+        response =  await model.generate_content_async(prompt) #配合worker.mq_consumer 改成非同步等待
         json_str = re.search(r"\{.*\}", response.text, re.DOTALL).group()
         parsed = json.loads(json_str)
         result = {

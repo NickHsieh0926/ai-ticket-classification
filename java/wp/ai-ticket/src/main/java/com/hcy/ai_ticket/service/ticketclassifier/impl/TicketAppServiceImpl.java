@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -32,35 +32,41 @@ public class TicketAppServiceImpl implements ITicketAppService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TicketAppServiceImpl.class);
 	private static final DebugTrace TRACE = new DebugTrace(LOGGER, LOGGER.isDebugEnabled());
 
-	@Value("${ai.mode:ml}")
-	private String aiMode;
-
-	private final IAiInferenceClient aiClient;
+	private final IAiInferenceClient mlClient;
+	private final IAiInferenceClient llmClient;
 	private final AsyncTicketService asyncTicketService;
 	private final TicketRepository ticketRepository;
 	private final LlmBatchService llmBatchService;
 
-	public TicketAppServiceImpl(IAiInferenceClient aiClient, AsyncTicketService asyncTicketService,
+	public TicketAppServiceImpl(@Qualifier("mlClient") IAiInferenceClient mlClient,
+			@Qualifier("llmClient") IAiInferenceClient llmClient, AsyncTicketService asyncTicketService,
 			TicketRepository ticketRepository, LlmBatchService llmBatchService) {
-		this.aiClient = aiClient;
+		this.mlClient = mlClient;
+		this.llmClient = llmClient;
 		this.asyncTicketService = asyncTicketService;
 		this.ticketRepository = ticketRepository;
 		this.llmBatchService = llmBatchService;
 	}
 
 	@Override
-	public PredictionResult predict(String text) throws Exception {
-		return aiClient.predict(text);
+	public PredictionResult predict(String text, String modelType) throws Exception {
+		if ("llm".equalsIgnoreCase(modelType)) {
+			return llmClient.predict(text);
+		}
+		return mlClient.predict(text);
 	}
 
 	@Override
-	public List<PredictionResult> predictBatch(List<String> texts) throws Exception {
-		return aiClient.predictBatch(texts);
+	public List<PredictionResult> predictBatch(List<String> texts, String modelType) throws Exception {
+	      if ("llm".equalsIgnoreCase(modelType)) {
+	          return llmClient.predictBatch(texts);
+	      }
+	      return mlClient.predictBatch(texts);
 	}
 
 	@Override
 	@Async("dispatcherExecutor")
-	public void processFile(byte[] content, String traceId) throws IOException, CsvException {
+	public void processFile(byte[] content, String traceId, String modelType) throws IOException, CsvException {
 		TRACE.message("執行CSVReader");
 		List<String> texts = new ArrayList<>();
 		try (InputStreamReader isr = new InputStreamReader(new ByteArrayInputStream(content), StandardCharsets.UTF_8);
@@ -70,8 +76,8 @@ public class TicketAppServiceImpl implements ITicketAppService {
 				texts.add(line[0]);
 			}
 		}
-		
-		if ("llm".equals(aiMode)) {
+
+		if ("llm".equals(modelType)) {
 			llmBatchService.dispatchBatch(texts, traceId);
 		} else {
 			predictAndSave(texts, traceId);

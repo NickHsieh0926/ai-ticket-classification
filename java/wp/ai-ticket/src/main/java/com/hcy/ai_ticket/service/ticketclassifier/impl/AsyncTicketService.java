@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -26,13 +27,13 @@ public class AsyncTicketService {
 
 	private final Map<String, TaskProgress> progressMap = new ConcurrentHashMap<>();
 
-	private final IAiInferenceClient aiClient;
+	private final IAiInferenceClient mlClient;
 	private final TicketRepository ticketRepository;
 	private final SimpMessagingTemplate messagingTemplate;
 
-	public AsyncTicketService(IAiInferenceClient aiClient, TicketRepository ticketRepository,
+	public AsyncTicketService(@Qualifier("mlClient") IAiInferenceClient mlClient, TicketRepository ticketRepository,
 			SimpMessagingTemplate messagingTemplate) {
-		this.aiClient = aiClient;
+		this.mlClient = mlClient;
 		this.ticketRepository = ticketRepository;
 		this.messagingTemplate = messagingTemplate;
 	}
@@ -49,7 +50,7 @@ public class AsyncTicketService {
          try {
              TRACE.message(">>> 開始處理批次子任務 [spanId:{}]", spanId);
 
-             PredictionResult result = aiClient.predict(content);
+             PredictionResult result = mlClient.predict(content);
 
              saveToDatabase(result, traceId, spanId);
 

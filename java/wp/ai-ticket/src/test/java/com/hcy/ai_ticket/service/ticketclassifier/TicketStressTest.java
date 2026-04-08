@@ -22,6 +22,7 @@ public class TicketStressTest {
 	private static final DebugTrace TRACE = new DebugTrace(LOGGER, LOGGER.isDebugEnabled());
 
 	private static final String TRACE_ID = "traceId";
+	private static final String modelType = "ml";
 
 	private static final String csvFilePath = "D:\\NK_WP\\LLM\\ai-ticket-classification\\java\\wp\\ai-ticket\\src\\test\\resources\\async_ticket_test_data.csv";
 
@@ -35,7 +36,7 @@ public class TicketStressTest {
 		String traceId = UUID.randomUUID().toString().replace("-", "");
 		MDC.put(TRACE_ID, traceId);
 
-		ticketAppService.processFile(fileBytes, traceId);
+		ticketAppService.processFile(fileBytes, traceId, modelType);
 		LOGGER.info("壓力測試已啟動，Global TraceID: " + traceId);
 
 		Thread.sleep(30 * 1000);
@@ -58,7 +59,7 @@ public class TicketStressTest {
 	                MDC.put("traceId", traceId);
 	                LOGGER.info("用戶 {} 開始提交工單", userIndex);
 
-	                ticketAppService.processFile(fileBytes, traceId);
+	                ticketAppService.processFile(fileBytes, traceId, modelType);
 
 	            } catch (Exception e) {
 	            	LOGGER.error("用戶 {} 提交失敗: {}", userIndex, e.getMessage());

@@ -9,11 +9,11 @@ import com.opencsv.exceptions.CsvException;
 
 public interface ITicketAppService {
 
-	PredictionResult predict(String text) throws Exception;
+	PredictionResult predict(String text, String modelType) throws Exception;
 
-	List<PredictionResult> predictBatch(List<String> texts) throws Exception;
+	List<PredictionResult> predictBatch(List<String> texts, String modelType) throws Exception;
 
-	void processFile(byte[] content, String traceId) throws IOException, CsvException;
+	void processFile(byte[] content, String traceId, String modelType) throws IOException, CsvException;
 
 	List<String> getTraceIds();
 

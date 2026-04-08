@@ -23,6 +23,23 @@
                     Dashboard
                 </NuxtLink>
             </nav>
+
+            <!-- Model Switcher -->
+            <div class="p-4 border-t">
+                <p class="text-xs text-gray-400 mb-2">推論模式</p>
+                <div class="flex rounded-lg overflow-hidden border border-gray-200">
+                    <button class="flex-1 py-1.5 text-sm font-medium transition-colors" :class="modelStore.modelType === 'ml'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white text-gray-500 hover:bg-gray-50'" @click="modelStore.setModelType('ml')">
+                        ML
+                    </button>
+                    <button class="flex-1 py-1.5 text-sm font-medium transition-colors" :class="modelStore.modelType === 'llm'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white text-gray-500 hover:bg-gray-50'" @click="modelStore.setModelType('llm')">
+                        LLM
+                    </button>
+                </div>
+            </div>
         </aside>
 
         <!-- Main -->
@@ -62,6 +79,7 @@
 <script setup lang="ts">
 const { connect } = useTicketSocket()
 const taskStore = useTaskStore()
+const modelStore = useModelStore()
 onMounted(() => connect())
 </script>
 <style scoped>

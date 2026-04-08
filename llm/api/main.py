@@ -97,9 +97,9 @@ def batch_predict(request: PredictBatchRequest):
 
 
 @app.post("/llm_predict")
-def llm_predict(request: LlmPredictRequest, background_tasks: BackgroundTasks):
+async def llm_predict(request: LlmPredictRequest, background_tasks: BackgroundTasks):
     logger.info("正在執行 LLM + RAG predict 運算...")
-    result = llm_predict_text(request.text)
+    result = await llm_predict_text(request.text)
     background_tasks.add_task(
         store_embedding, trace_id_var.get(), request.text, result["predicted_label"]
     )

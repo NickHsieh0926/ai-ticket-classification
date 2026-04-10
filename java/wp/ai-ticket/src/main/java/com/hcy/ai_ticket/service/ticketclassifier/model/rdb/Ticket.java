@@ -34,15 +34,20 @@ public class Ticket {
 	@Column(name = "span_id")
 	private String spanId;
 
+	@Column(name = "model_type")
+	private String modelType;
+
 	@CreationTimestamp
 	@Column(name = "created_Timestamp", updatable = false)
 	private LocalDateTime createdTimestamp;
 
 	public Ticket() {
+		super();
 	}
 
 	public Ticket(Long id, String content, String category, String confidence, String status, String traceId,
-			String spanId, LocalDateTime createdTimestamp) {
+			String spanId, String modelType, LocalDateTime createdTimestamp) {
+		super();
 		this.id = id;
 		this.content = content;
 		this.category = category;
@@ -50,6 +55,7 @@ public class Ticket {
 		this.status = status;
 		this.traceId = traceId;
 		this.spanId = spanId;
+		this.modelType = modelType;
 		this.createdTimestamp = createdTimestamp;
 	}
 
@@ -107,6 +113,14 @@ public class Ticket {
 
 	public void setSpanId(String spanId) {
 		this.spanId = spanId;
+	}
+
+	public String getModelType() {
+		return modelType;
+	}
+
+	public void setModelType(String modelType) {
+		this.modelType = modelType;
 	}
 
 	public LocalDateTime getCreatedTimestamp() {

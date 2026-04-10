@@ -3,6 +3,7 @@ package com.hcy.ai_ticket.service.ticketclassifier;
 import java.io.IOException;
 import java.util.List;
 
+import com.hcy.ai_ticket.service.ticketclassifier.dto.AbComparisonDTO;
 import com.hcy.ai_ticket.service.ticketclassifier.dto.DashboardStatsDTO;
 import com.hcy.ai_ticket.service.ticketclassifier.dto.PredictionResult;
 import com.opencsv.exceptions.CsvException;
@@ -18,5 +19,9 @@ public interface ITicketAppService {
 	List<String> getTraceIds();
 
 	DashboardStatsDTO getDashboardStats(String traceId);
+	
+	List<AbComparisonDTO> getAbComparison(String traceId);
+	
+	void processFileForAb(byte[] content, String traceId) throws IOException, CsvException;
 
 }

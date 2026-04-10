@@ -18,7 +18,7 @@ public class ThreadConfig {
 		executor.setCorePoolSize(10);
 		executor.setMaxPoolSize(20);
 		executor.setQueueCapacity(100); 
-		executor.setThreadNamePrefix("AI-Task-");
+		executor.setThreadNamePrefix("ML-Task-");
 		executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
 		
 		executor.setTaskDecorator(new MdcTaskDecorator());
@@ -39,7 +39,20 @@ public class ThreadConfig {
 		executor.initialize();
 		return executor;
 	}
-
-
+	
+	
+	@Bean(name = "llmDispatchExecutor")
+	public Executor llmDispatchExecutor() {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(10);
+		executor.setMaxPoolSize(20);
+		executor.setQueueCapacity(100); 
+		executor.setThreadNamePrefix("LLM-Dispatch-");
+		executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+		
+		executor.setTaskDecorator(new MdcTaskDecorator());
+		executor.initialize();
+		return executor;
+	}
 
 }

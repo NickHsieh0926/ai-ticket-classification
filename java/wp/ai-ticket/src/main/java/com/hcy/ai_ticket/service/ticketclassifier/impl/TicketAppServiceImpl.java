@@ -16,8 +16,12 @@ import org.springframework.stereotype.Service;
 
 import com.hcy.ai_ticket.service.ticketclassifier.IAiInferenceClient;
 import com.hcy.ai_ticket.service.ticketclassifier.ITicketAppService;
+import com.hcy.ai_ticket.service.ticketclassifier.dto.AbComparisonDTO;
 import com.hcy.ai_ticket.service.ticketclassifier.dto.DashboardStatsDTO;
 import com.hcy.ai_ticket.service.ticketclassifier.dto.PredictionResult;
+import com.hcy.ai_ticket.service.ticketclassifier.impl.ab.AbProgressTracker;
+import com.hcy.ai_ticket.service.ticketclassifier.impl.llm.LlmBatchService;
+import com.hcy.ai_ticket.service.ticketclassifier.impl.ml.AsyncTicketService;
 import com.hcy.ai_ticket.service.ticketclassifier.model.repository.TicketRepository;
 import com.hcy.ai_ticket.service.ticketclassifier.model.repository.projection.BarChart;
 import com.hcy.ai_ticket.service.ticketclassifier.model.repository.projection.PieChart;
@@ -37,15 +41,17 @@ public class TicketAppServiceImpl implements ITicketAppService {
 	private final AsyncTicketService asyncTicketService;
 	private final TicketRepository ticketRepository;
 	private final LlmBatchService llmBatchService;
+	private final AbProgressTracker abProgressTracker;
 
 	public TicketAppServiceImpl(@Qualifier("mlClient") IAiInferenceClient mlClient,
 			@Qualifier("llmClient") IAiInferenceClient llmClient, AsyncTicketService asyncTicketService,
-			TicketRepository ticketRepository, LlmBatchService llmBatchService) {
+			TicketRepository ticketRepository, LlmBatchService llmBatchService, AbProgressTracker abProgressTracker) {
 		this.mlClient = mlClient;
 		this.llmClient = llmClient;
 		this.asyncTicketService = asyncTicketService;
 		this.ticketRepository = ticketRepository;
 		this.llmBatchService = llmBatchService;
+		this.abProgressTracker = abProgressTracker;
 	}
 
 	@Override
@@ -58,10 +64,10 @@ public class TicketAppServiceImpl implements ITicketAppService {
 
 	@Override
 	public List<PredictionResult> predictBatch(List<String> texts, String modelType) throws Exception {
-	      if ("llm".equalsIgnoreCase(modelType)) {
-	          return llmClient.predictBatch(texts);
-	      }
-	      return mlClient.predictBatch(texts);
+		if ("llm".equalsIgnoreCase(modelType)) {
+			return llmClient.predictBatch(texts);
+		}
+		return mlClient.predictBatch(texts);
 	}
 
 	@Override
@@ -119,6 +125,31 @@ public class TicketAppServiceImpl implements ITicketAppService {
 		}
 
 		return dto;
+	}
+	
+	@Override
+	@Async("dispatcherExecutor")
+	public void processFileForAb(byte[] content, String traceId) throws IOException, CsvException {
+	    List<String> texts = new ArrayList<>();
+	    try (InputStreamReader isr = new InputStreamReader(new ByteArrayInputStream(content), StandardCharsets.UTF_8);
+	         CSVReader reader = new CSVReaderBuilder(isr).withSkipLines(1).build()) {
+	        String[] line;
+	        while ((line = reader.readNext()) != null) {
+	            texts.add(line[0]);
+	        }
+	    }
+
+	    abProgressTracker.register(traceId, texts.size());  
+	    predictAndSave(texts, traceId);                     
+	    llmBatchService.dispatchBatch(texts, traceId);      
+	}
+	
+	@Override
+	public List<AbComparisonDTO> getAbComparison(String traceId) {
+		return ticketRepository.findAbComparison(traceId).stream()
+				.map(row -> new AbComparisonDTO(row.getTraceId(), row.getContent(), row.getMlCategory(),
+						row.getLlmCategory(), row.getMlConfidence(), row.getLlmConfidence(), row.getIsMatch()))
+				.toList();
 	}
 
 }

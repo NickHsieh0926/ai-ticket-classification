@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.hcy.ai_ticket.service.ticketclassifier.ITicketAppService;
+import com.hcy.ai_ticket.service.ticketclassifier.dto.AbComparisonDTO;
 import com.hcy.ai_ticket.service.ticketclassifier.dto.DashboardStatsDTO;
 import com.hcy.ai_ticket.service.ticketclassifier.dto.PredictionResult;
 import com.hcy.ai_ticket.util.DebugTrace;
@@ -72,6 +73,24 @@ public class TicketController {
 	@GetMapping("/stats")
 	public ResponseEntity<DashboardStatsDTO> getStats(@RequestParam("traceId") String traceId) {
 		return ResponseEntity.ok(ticketAppService.getDashboardStats(traceId));
+	}
+
+	@GetMapping("/ab-comparison")
+	public ResponseEntity<List<AbComparisonDTO>> getAbComparison(@RequestParam("traceId") String traceId) {
+		return ResponseEntity.ok(ticketAppService.getAbComparison(traceId));
+	}
+	
+	@PostMapping("/upload/ab")
+	public ResponseEntity<Map<String, String>> uploadForAbComparison(
+	        @RequestParam("file") MultipartFile file) throws Exception {
+	    if (file.isEmpty()) {
+	        return ResponseEntity.badRequest().body(Map.of("message", "請選擇檔案"));
+	    }
+	    String traceId = MDC.get("traceId");
+	    byte[] fileBytes = file.getBytes();
+	    ticketAppService.processFileForAb(fileBytes, traceId);
+	    LOGGER.info("AB 比較任務啟動 TraceID: {}", traceId);
+	    return ResponseEntity.ok(Map.of("traceId", traceId));
 	}
 
 }

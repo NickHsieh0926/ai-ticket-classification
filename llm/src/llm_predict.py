@@ -4,6 +4,7 @@ import re
 import google.generativeai as genai
 import logging
 from rag.retriever import retrieve_similar
+from rag.semantic_cache import semantic_cache_get, semantic_cache_set
 
 logger = logging.getLogger(__name__)
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
@@ -15,7 +16,14 @@ CATEGORIES = ["Billing", "Technical", "Account", "General"]
 async def llm_predict_text(text: str) -> dict:
     logger.info("執行 llm_predict_text ")
 
-    # RAG
+    # 1. Semantic Cache
+    cached = semantic_cache_get(text)
+    if cached:
+        logger.info("Semantic Cache 命中，similarity=%.4f", cached.get("similarity", 0))
+        cached["cache_type"] = "semantic"
+        return cached
+
+    # 2. Cache 未命中 → RAG + LLM
     similar = retrieve_similar(text, top_k=3)
     rag_context = ""
     if similar:
@@ -49,6 +57,7 @@ Reply in this JSON format only:
             "reasoning": parsed.get("reasoning", ""),
             "model": "gemini-2.5-flash-lite",
             "rag_used": len(similar) > 0,
+            "cache_type": "none",
         }
     except Exception as e:
         result = {
@@ -58,6 +67,10 @@ Reply in this JSON format only:
             "reasoning": f"LLM error: {str(e)}",
             "model": "gemini-2.5-flash-lite",
             "rag_used": False,
+            "cache_type": "none",
         }
+    
+    # 3. 寫入 Semantic Cache
+    semantic_cache_set(text, result)    
 
     return result

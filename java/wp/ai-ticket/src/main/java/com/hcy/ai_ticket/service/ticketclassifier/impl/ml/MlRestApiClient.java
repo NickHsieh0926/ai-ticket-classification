@@ -1,4 +1,4 @@
-package com.hcy.ai_ticket.service.ticketclassifier.impl;
+package com.hcy.ai_ticket.service.ticketclassifier.impl.ml;
 
 import java.util.ArrayList;
 import java.util.HashMap;

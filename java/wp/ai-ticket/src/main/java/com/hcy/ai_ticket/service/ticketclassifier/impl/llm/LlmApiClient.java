@@ -1,4 +1,4 @@
-package com.hcy.ai_ticket.service.ticketclassifier.impl;
+package com.hcy.ai_ticket.service.ticketclassifier.impl.llm;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

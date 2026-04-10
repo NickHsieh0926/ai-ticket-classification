@@ -40,7 +40,9 @@ def semantic_cache_get(query_text: str) -> dict | None:
             conn.commit()
             result = dict(row.result_json)
             result["semantic_cache_hit"] = True
+            result["rag_used"] = False
             result["similarity"] = float(row.similarity)
+            result["status"] = "success"
             return result
     return None
 

@@ -37,10 +37,19 @@ export const useTicketSocket = () => {
         }
     }
 
+    const subscribeToAbTask = (traceId: string, onCompleted: () => void) => {
+        if (stompClient?.connected) {
+            stompClient.subscribe(`/topic/ab-progress/${traceId}`, (msg) => {
+                const body = JSON.parse(msg.body)
+                if (body.status === 'COMPLETED') onCompleted()
+            })
+        }
+    }
+
     const disconnect = () => {
         stompClient?.deactivate()
         stompClient = null
     }
 
-    return { connect, subscribeToTask, disconnect }
+    return { connect, subscribeToTask, subscribeToAbTask, disconnect }
 }

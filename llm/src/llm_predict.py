@@ -47,7 +47,9 @@ Reply in this JSON format only:
 """
     try:
         logger.info("LLM 請求...")
-        response =  await model.generate_content_async(prompt) #配合worker.mq_consumer 改成非同步等待
+        response = await model.generate_content_async(
+            prompt
+        )  # 配合worker.mq_consumer 改成非同步等待
         json_str = re.search(r"\{.*\}", response.text, re.DOTALL).group()
         parsed = json.loads(json_str)
         result = {
@@ -58,19 +60,20 @@ Reply in this JSON format only:
             "model": "gemini-2.5-flash-lite",
             "rag_used": len(similar) > 0,
             "cache_type": "none",
+            "status": "success",
         }
+        # 3. 寫入 Semantic Cache
+        semantic_cache_set(text, result)
     except Exception as e:
         result = {
             "input": text,
-            "predicted_label": "General",
+            "predicted_label": "LLM error",
             "confidence": "0.0",
             "reasoning": f"LLM error: {str(e)}",
             "model": "gemini-2.5-flash-lite",
             "rag_used": False,
             "cache_type": "none",
+            "status": "error",
         }
-    
-    # 3. 寫入 Semantic Cache
-    semantic_cache_set(text, result)    
 
     return result

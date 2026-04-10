@@ -37,6 +37,14 @@ public class Ticket {
 	@Column(name = "model_type")
 	private String modelType;
 
+	@Column(columnDefinition = "TEXT")
+	private String reasoning;
+
+	private String model;
+
+	@Column(name = "rag_used")
+	private Boolean ragUsed;
+
 	@CreationTimestamp
 	@Column(name = "created_Timestamp", updatable = false)
 	private LocalDateTime createdTimestamp;
@@ -46,7 +54,8 @@ public class Ticket {
 	}
 
 	public Ticket(Long id, String content, String category, String confidence, String status, String traceId,
-			String spanId, String modelType, LocalDateTime createdTimestamp) {
+			String spanId, String modelType, String reasoning, String model, Boolean ragUsed,
+			LocalDateTime createdTimestamp) {
 		super();
 		this.id = id;
 		this.content = content;
@@ -56,6 +65,9 @@ public class Ticket {
 		this.traceId = traceId;
 		this.spanId = spanId;
 		this.modelType = modelType;
+		this.reasoning = reasoning;
+		this.model = model;
+		this.ragUsed = ragUsed;
 		this.createdTimestamp = createdTimestamp;
 	}
 
@@ -121,6 +133,30 @@ public class Ticket {
 
 	public void setModelType(String modelType) {
 		this.modelType = modelType;
+	}
+
+	public String getReasoning() {
+		return reasoning;
+	}
+
+	public void setReasoning(String reasoning) {
+		this.reasoning = reasoning;
+	}
+
+	public String getModel() {
+		return model;
+	}
+
+	public void setModel(String model) {
+		this.model = model;
+	}
+
+	public Boolean getRagUsed() {
+		return ragUsed;
+	}
+
+	public void setRagUsed(Boolean ragUsed) {
+		this.ragUsed = ragUsed;
 	}
 
 	public LocalDateTime getCreatedTimestamp() {

@@ -9,6 +9,9 @@ CREATE TABLE IF NOT EXISTS tickets(
     status VARCHAR(20),
     trace_id VARCHAR(36), 
     span_id VARCHAR(50),
+	reasoning TEXT,
+    model VARCHAR(50),
+    rag_used BOOLEAN DEFAULT FALSE,
 	model_type VARCHAR(10) DEFAULT 'ml',
     created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

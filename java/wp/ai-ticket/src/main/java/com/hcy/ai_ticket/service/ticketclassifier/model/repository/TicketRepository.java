@@ -51,4 +51,14 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 			""", nativeQuery = true)
 	List<AbComparison> findAbComparison(@Param("traceId") String traceId);
 
+	@Query(value = """
+			SELECT trace_id FROM tickets
+			GROUP BY trace_id
+			HAVING SUM(CASE WHEN model_type = 'ml'  THEN 1 ELSE 0 END) > 0
+			   AND SUM(CASE WHEN model_type = 'llm' THEN 1 ELSE 0 END) > 0
+			ORDER BY MAX(created_timestamp) DESC
+			LIMIT 10
+			""", nativeQuery = true)
+	List<String> findAbTraceIds();
+
 }

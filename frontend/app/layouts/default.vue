@@ -22,6 +22,10 @@
                 <NuxtLink to="/Dashboard" class="block px-3 py-2 rounded hover:bg-gray-100">
                     Dashboard
                 </NuxtLink>
+
+                <NuxtLink to="/ab-comparison" class="block px-3 py-2 rounded hover:bg-gray-100">
+                    AB 比較
+                </NuxtLink>
             </nav>
 
             <!-- Model Switcher -->

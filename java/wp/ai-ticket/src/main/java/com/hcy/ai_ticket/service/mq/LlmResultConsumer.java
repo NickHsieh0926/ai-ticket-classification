@@ -41,19 +41,20 @@ public class LlmResultConsumer {
 
 		try {
 			LOGGER.info("[LlmConsumer] 收到 LLM 結果，spanId={}, label={}", msg.getSpanId(), msg.getPredictedLabel());
-			LOGGER.info(
-					"[LlmConsumer] msg.getText:{}, msg.getPredictedLabel:{}, msg.getConfidence:{}, msg.getTraceId:{},msg.getSpanId:{}",
-					msg.getText(), msg.getPredictedLabel(), msg.getConfidence(), msg.getTraceId(), msg.getSpanId());
+
+			PredictionResult result = new PredictionResult(msg.getText(), msg.getPredictedLabel(),
+					Double.valueOf(msg.getConfidence()), msg.getReasoning(), msg.getModel(), msg.isRagUsed());
 
 			// 回寫 Redis （TTL 1 hr）
-			PredictionResult result = new PredictionResult(msg.getText(), msg.getPredictedLabel(),
-					Double.valueOf(msg.getConfidence()));
-			redisTemplate.opsForValue().set(msg.getCacheKey(), objectMapper.writeValueAsString(result),
-					Duration.ofHours(1));
+			if ("success".equals(msg.getStatus())) {
+				redisTemplate.opsForValue().set(msg.getCacheKey(), objectMapper.writeValueAsString(result),
+						Duration.ofHours(1));
+				LOGGER.info("[LlmConsumer] 寫入 Redis cacheKey:{}", msg.getCacheKey());
+			}
 
 			// 寫入 DB
 			llmBatchService.saveTicket(msg.getText(), msg.getPredictedLabel(), msg.getConfidence(), msg.getTraceId(),
-					msg.getSpanId());
+					msg.getSpanId(), msg.getReasoning(), msg.getModel(), msg.isRagUsed(), msg.getStatus());
 
 			// 推送進度（由 LlmBatchService 統一處理 Redis INCR + WebSocket）
 			llmBatchService.pushProgress(msg.getTraceId(), msg.getPredictedLabel());

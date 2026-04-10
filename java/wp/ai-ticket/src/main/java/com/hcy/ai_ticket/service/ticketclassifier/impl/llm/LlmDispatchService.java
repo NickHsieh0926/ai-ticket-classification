@@ -40,7 +40,7 @@ public class LlmDispatchService {
 		try {
 			String cached = redisTemplate.opsForValue().get(cacheKey);
 			if (cached != null) {
-				LOGGER.info("[LlmDispatch] Cache HIT");
+				LOGGER.info("[LlmDispatch] Cache HIT cacheKey:{}",cacheKey);
 				llmBatchService.handleCacheHit(cached, text, traceId, spanId);
 			} else {
 				LlmTaskMessage msg = new LlmTaskMessage(traceId, spanId, text, cacheKey);

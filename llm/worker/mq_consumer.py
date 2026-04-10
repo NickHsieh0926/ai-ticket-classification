@@ -50,6 +50,7 @@ async def process_message(message: aio_pika.IncomingMessage, result_exchange):
                 "reasoning": result["reasoning"],
                 "model": result["model"],
                 "ragUsed": result["rag_used"],
+                "status": result["status"],
             }
             await result_exchange.publish(
                 aio_pika.Message(

@@ -10,6 +10,7 @@ public class LlmResultMessage {
 	private String confidence;
 	private String reasoning;
 	private String model;
+	private String status;
 	private boolean ragUsed;
 
 	public LlmResultMessage() {
@@ -17,7 +18,7 @@ public class LlmResultMessage {
 	}
 
 	public LlmResultMessage(String traceId, String spanId, String cacheKey, String text, String predictedLabel,
-			String confidence, String reasoning, String model, boolean ragUsed) {
+			String confidence, String reasoning, String model, String status, boolean ragUsed) {
 		super();
 		this.traceId = traceId;
 		this.spanId = spanId;
@@ -27,6 +28,7 @@ public class LlmResultMessage {
 		this.confidence = confidence;
 		this.reasoning = reasoning;
 		this.model = model;
+		this.status = status;
 		this.ragUsed = ragUsed;
 	}
 
@@ -92,6 +94,14 @@ public class LlmResultMessage {
 
 	public void setModel(String model) {
 		this.model = model;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
 	}
 
 	public boolean isRagUsed() {

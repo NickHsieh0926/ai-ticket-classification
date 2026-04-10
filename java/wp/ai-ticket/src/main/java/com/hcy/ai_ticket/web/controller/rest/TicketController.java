@@ -79,18 +79,23 @@ public class TicketController {
 	public ResponseEntity<List<AbComparisonDTO>> getAbComparison(@RequestParam("traceId") String traceId) {
 		return ResponseEntity.ok(ticketAppService.getAbComparison(traceId));
 	}
-	
+
 	@PostMapping("/upload/ab")
-	public ResponseEntity<Map<String, String>> uploadForAbComparison(
-	        @RequestParam("file") MultipartFile file) throws Exception {
-	    if (file.isEmpty()) {
-	        return ResponseEntity.badRequest().body(Map.of("message", "請選擇檔案"));
-	    }
-	    String traceId = MDC.get("traceId");
-	    byte[] fileBytes = file.getBytes();
-	    ticketAppService.processFileForAb(fileBytes, traceId);
-	    LOGGER.info("AB 比較任務啟動 TraceID: {}", traceId);
-	    return ResponseEntity.ok(Map.of("traceId", traceId));
+	public ResponseEntity<Map<String, String>> uploadForAbComparison(@RequestParam("file") MultipartFile file)
+			throws Exception {
+		if (file.isEmpty()) {
+			return ResponseEntity.badRequest().body(Map.of("message", "請選擇檔案"));
+		}
+		String traceId = MDC.get("traceId");
+		byte[] fileBytes = file.getBytes();
+		ticketAppService.processFileForAb(fileBytes, traceId);
+		LOGGER.info("AB 比較任務啟動 TraceID: {}", traceId);
+		return ResponseEntity.ok(Map.of("traceId", traceId));
+	}
+
+	@GetMapping("/ab-trace-ids")
+	public List<String> getAbTraceIds() {
+		return ticketAppService.getAbTraceIds();
 	}
 
 }

@@ -26,6 +26,8 @@ import com.hcy.ai_ticket.service.ticketclassifier.model.repository.TicketReposit
 import com.hcy.ai_ticket.service.ticketclassifier.model.repository.projection.BarChart;
 import com.hcy.ai_ticket.service.ticketclassifier.model.repository.projection.PieChart;
 import com.hcy.ai_ticket.util.DebugTrace;
+import com.opencsv.CSVParser;
+import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvException;
@@ -76,7 +78,9 @@ public class TicketAppServiceImpl implements ITicketAppService {
 		TRACE.message("執行CSVReader");
 		List<String> texts = new ArrayList<>();
 		try (InputStreamReader isr = new InputStreamReader(new ByteArrayInputStream(content), StandardCharsets.UTF_8);
-				CSVReader reader = new CSVReaderBuilder(isr).withSkipLines(1).build()) {
+				CSVReader reader = new CSVReaderBuilder(isr).withSkipLines(1)
+						.withCSVParser(new CSVParserBuilder().withEscapeChar(CSVParser.NULL_CHARACTER).build())
+						.build();) {
 			String[] line;
 			while ((line = reader.readNext()) != null) {
 				texts.add(line[0]);
@@ -126,30 +130,37 @@ public class TicketAppServiceImpl implements ITicketAppService {
 
 		return dto;
 	}
-	
+
 	@Override
 	@Async("dispatcherExecutor")
 	public void processFileForAb(byte[] content, String traceId) throws IOException, CsvException {
-	    List<String> texts = new ArrayList<>();
-	    try (InputStreamReader isr = new InputStreamReader(new ByteArrayInputStream(content), StandardCharsets.UTF_8);
-	         CSVReader reader = new CSVReaderBuilder(isr).withSkipLines(1).build()) {
-	        String[] line;
-	        while ((line = reader.readNext()) != null) {
-	            texts.add(line[0]);
-	        }
-	    }
+		List<String> texts = new ArrayList<>();
+		try (InputStreamReader isr = new InputStreamReader(new ByteArrayInputStream(content), StandardCharsets.UTF_8);
+				CSVReader reader = new CSVReaderBuilder(isr).withSkipLines(1)
+						.withCSVParser(new CSVParserBuilder().withEscapeChar(CSVParser.NULL_CHARACTER).build())
+						.build();) {
+			String[] line;
+			while ((line = reader.readNext()) != null) {
+				texts.add(line[0]);
+			}
+		}
 
-	    abProgressTracker.register(traceId, texts.size());  
-	    predictAndSave(texts, traceId);                     
-	    llmBatchService.dispatchBatch(texts, traceId);      
+		abProgressTracker.register(traceId, texts.size());
+		predictAndSave(texts, traceId);
+		llmBatchService.dispatchBatch(texts, traceId);
 	}
-	
+
 	@Override
 	public List<AbComparisonDTO> getAbComparison(String traceId) {
 		return ticketRepository.findAbComparison(traceId).stream()
 				.map(row -> new AbComparisonDTO(row.getTraceId(), row.getContent(), row.getMlCategory(),
 						row.getLlmCategory(), row.getMlConfidence(), row.getLlmConfidence(), row.getIsMatch()))
 				.toList();
+	}
+
+	@Override
+	public List<String> getAbTraceIds() {
+		return ticketRepository.findAbTraceIds();
 	}
 
 }

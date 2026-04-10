@@ -85,6 +85,17 @@ public class AsyncTicketService {
 
 		} catch (Exception e) {
 			LOGGER.error("!!! 子任務處理失敗: {}", e.getMessage());
+			if (abProgressTracker.isAbTask(traceId)) {
+				abProgressTracker.itemComplete(traceId, "ML error");
+			} else {
+				TaskProgress progress = progressMap.computeIfAbsent(traceId, k -> new TaskProgress());
+				int completed = progress.getCompletedCount().incrementAndGet();
+				boolean done = completed >= total;
+				wsProgressService.push(traceId, TopicType.PROGRESS, completed, total, "ML error",
+						done ? "COMPLETED" : "PROCESSING");
+				if (done)
+					progressMap.remove(traceId);
+			}
 		} finally {
 			MDC.remove("spanId");
 			MDC.remove("traceId");
@@ -98,7 +109,7 @@ public class AsyncTicketService {
 		ticket.setConfidence(String.valueOf(result.getConfidence()));
 		ticket.setTraceId(traceId);
 		ticket.setSpanId(spanId);
-		ticket.setStatus("SUCCESS");
+		ticket.setStatus("success");
 		ticket.setModelType("ml");
 
 		ticketRepository.save(ticket);

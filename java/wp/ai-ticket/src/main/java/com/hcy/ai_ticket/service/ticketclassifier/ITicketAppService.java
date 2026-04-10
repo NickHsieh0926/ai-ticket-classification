@@ -19,9 +19,11 @@ public interface ITicketAppService {
 	List<String> getTraceIds();
 
 	DashboardStatsDTO getDashboardStats(String traceId);
-	
+
 	List<AbComparisonDTO> getAbComparison(String traceId);
-	
+
 	void processFileForAb(byte[] content, String traceId) throws IOException, CsvException;
+
+	List<String> getAbTraceIds();
 
 }

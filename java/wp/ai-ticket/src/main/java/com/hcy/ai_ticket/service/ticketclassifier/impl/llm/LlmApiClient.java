@@ -1,7 +1,5 @@
 package com.hcy.ai_ticket.service.ticketclassifier.impl.llm;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hcy.ai_ticket.service.ticketclassifier.IAiInferenceClient;
 import com.hcy.ai_ticket.service.ticketclassifier.dto.PredictionResult;
+import com.hcy.ai_ticket.util.CacheKeyUtils;
 
 @Service("llmClient")
 public class LlmApiClient implements IAiInferenceClient {
@@ -39,12 +38,12 @@ public class LlmApiClient implements IAiInferenceClient {
 
 	@Override
 	public PredictionResult predict(String text) throws Exception {
-		String key = cacheKey(text);
+		String key = CacheKeyUtils.buildLlmCacheKey(text);
 
 		// Redis HIT
 		String cached = redisTemplate.opsForValue().get(key);
 		if (cached != null) {
-			LOGGER.info("Redis cache HIT: {}", key);
+			LOGGER.info("Redis cache HIT key: {}", key);
 			return objectMapper.readValue(cached, PredictionResult.class);
 		}
 
@@ -56,12 +55,21 @@ public class LlmApiClient implements IAiInferenceClient {
 		Map<String, Object> result = restTemplate.postForObject(llmEndpoint, body, Map.class);
 		if (result == null)
 			throw new RuntimeException("LLM returned empty response");
-
-		PredictionResult predictionResult = new PredictionResult((String) result.get("input"),
-				(String) result.get("predicted_label"), Double.valueOf((String) result.get("confidence")));
-
+		
+		PredictionResult predictionResult = new PredictionResult(
+				(String) result.get("input"),
+				(String) result.get("predicted_label"),
+				Double.valueOf((String) result.get("confidence")),
+				(String) result.get("reasoning"),
+				(String) result.get("model"),
+				Boolean.TRUE.equals(result.get("rag_used")));
+		
 		// 寫入 Redis（TTL 24h）
-		redisTemplate.opsForValue().set(key, objectMapper.writeValueAsString(predictionResult), Duration.ofHours(24));
+		if("success".equals(result.get("status"))) {
+			redisTemplate.opsForValue().set(key, objectMapper.writeValueAsString(predictionResult),
+					Duration.ofHours(24));
+			LOGGER.info("LLM 推論完成，status = success，寫入 Redis cacheKey:{}", key);
+		}
 
 		LOGGER.info("LLM 推論完成，label={}", predictionResult.getPredictedLabel());
 		return predictionResult;
@@ -75,14 +83,4 @@ public class LlmApiClient implements IAiInferenceClient {
 		return results;
 	}
 
-	private String cacheKey(String text) throws Exception {
-		MessageDigest md = MessageDigest.getInstance("MD5");
-		byte[] hash = md.digest(text.getBytes(StandardCharsets.UTF_8));
-		StringBuilder sb = new StringBuilder();
-		for (byte b : hash) {
-			sb.append(String.format("%02x", b));
-		}
-		return "llm:predict:" + sb.toString();
-	}
-	
 }

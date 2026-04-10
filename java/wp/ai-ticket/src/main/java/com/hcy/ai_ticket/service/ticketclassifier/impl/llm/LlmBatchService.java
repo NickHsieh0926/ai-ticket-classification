@@ -1,7 +1,5 @@
 package com.hcy.ai_ticket.service.ticketclassifier.impl.llm;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,6 +18,7 @@ import com.hcy.ai_ticket.service.ticketclassifier.model.rdb.Ticket;
 import com.hcy.ai_ticket.service.ticketclassifier.model.repository.TicketRepository;
 import com.hcy.ai_ticket.service.webSocket.WsProgressService;
 import com.hcy.ai_ticket.service.webSocket.staticenum.TopicType;
+import com.hcy.ai_ticket.util.CacheKeyUtils;
 
 @Service
 public class LlmBatchService {
@@ -64,10 +63,9 @@ public class LlmBatchService {
 		for (int i = 0; i < texts.size(); i++) {
 			String text = texts.get(i);
 			String spanId = traceId + "-" + (i + 1);
-			String cacheKey = buildCacheKey(text);
+			String key = CacheKeyUtils.buildLlmCacheKey(text);
 
-			llmDispatchService.dispatchSingleItem(text, traceId, spanId, cacheKey);
-
+			llmDispatchService.dispatchSingleItem(text, traceId, spanId, key);
 		}
 	}
 
@@ -103,14 +101,18 @@ public class LlmBatchService {
 		}
 	}
 
-	public void saveTicket(String text, String category, String confidence, String traceId, String spanId) {
+	public void saveTicket(String text, String category, String confidence, String traceId, String spanId,
+			String reasoning, String model, Boolean ragUsed, String status) {
 		Ticket ticket = new Ticket();
 		ticket.setContent(text);
 		ticket.setCategory(category);
 		ticket.setConfidence(confidence);
 		ticket.setTraceId(traceId);
 		ticket.setSpanId(spanId);
-		ticket.setStatus("SUCCESS");
+		ticket.setReasoning(reasoning);
+		ticket.setModel(model);
+		ticket.setRagUsed(ragUsed);
+		ticket.setStatus(status);
 		ticket.setModelType("llm");
 		ticketRepository.save(ticket);
 	}
@@ -118,26 +120,12 @@ public class LlmBatchService {
 	public void handleCacheHit(String cached, String text, String traceId, String spanId) {
 		try {
 			PredictionResult result = objectMapper.readValue(cached, PredictionResult.class);
-			LOGGER.info(
-					"[LlmBatch] result info text:{}, result.getPredictedLabel:{}, String.valueOf(result.getConfidence()):{}, traceId:{}, spanId:{}",
-					text, result.getPredictedLabel(), String.valueOf(result.getConfidence()), traceId, spanId);
-			saveTicket(text, result.getPredictedLabel(), String.valueOf(result.getConfidence()), traceId, spanId);
+			saveTicket(text, result.getPredictedLabel(), String.valueOf(result.getConfidence()), traceId, spanId,
+					result.getReasoning(), result.getModel(), Boolean.FALSE, "success");
 			pushProgress(traceId, result.getPredictedLabel());
 		} catch (Exception e) {
 			LOGGER.error("[LlmBatch] Cache HIT 處理失敗: {}", e.getMessage());
 		}
 	}
 
-	private String buildCacheKey(String text) {
-		try {
-			MessageDigest md = MessageDigest.getInstance("MD5");
-			byte[] hash = md.digest(text.getBytes(StandardCharsets.UTF_8));
-			StringBuilder sb = new StringBuilder();
-			for (byte b : hash)
-				sb.append(String.format("%02x", b));
-			return "llm:predict:" + sb.toString();
-		} catch (Exception e) {
-			throw new RuntimeException("MD5 計算失敗", e);
-		}
-	}
 }

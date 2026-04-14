@@ -26,14 +26,13 @@ async def process_message(message: aio_pika.IncomingMessage, result_exchange):
         body = json.loads(message.body.decode())
         trace_id = body.get("traceId")
         span_id = body.get("spanId")
+        text = body.get("text")
+        cache_key = body.get("cacheKey")
 
         token_t = trace_id_var.set(trace_id)
         token_s = span_id_var.set(span_id)
 
         try:
-            text = body.get("text")
-            cache_key = body.get("cacheKey")
-
             # RAG + LLM 推論
             result = await llm_predict_text(text)
             # pgvector 寫入
@@ -52,22 +51,33 @@ async def process_message(message: aio_pika.IncomingMessage, result_exchange):
                 "ragUsed": result["rag_used"],
                 "status": result["status"],
             }
-            await result_exchange.publish(
-                aio_pika.Message(
-                    body=json.dumps(result_msg).encode(),
-                    delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
-                ),
-                routing_key=LLM_RESULT_QUEUE,
-            )
-
             logger.info(f"[Consumer] Done | {result['predicted_label']}")
 
         except Exception as e:
             logger.error(f"[Consumer] Error: {e}")
-            raise  # 重新拋出 → 進 DLQ
+            result_msg = {
+                "traceId": trace_id,
+                "spanId": span_id,
+                "cacheKey": cache_key,
+                "text": text,
+                "predictedLabel": "error",
+                "confidence": "0.0",
+                "reasoning": f"Processing failed: {str(e)}",
+                "model": "gemini-2.5-flash-lite",
+                "ragUsed": False,
+                "status": "error",
+            }
         finally:
             trace_id_var.reset(token_t)
             span_id_var.reset(token_s)
+
+        await result_exchange.publish(
+            aio_pika.Message(
+                body=json.dumps(result_msg).encode(),
+                delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
+            ),
+            routing_key=LLM_RESULT_QUEUE,
+        )
 
 
 async def main():

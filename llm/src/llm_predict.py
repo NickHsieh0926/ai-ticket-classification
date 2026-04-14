@@ -3,6 +3,9 @@ import json
 import re
 import google.generativeai as genai
 import logging
+import asyncio
+from aiolimiter import AsyncLimiter
+from google.api_core.exceptions import ResourceExhausted
 from rag.retriever import retrieve_similar
 from rag.semantic_cache import semantic_cache_get, semantic_cache_set
 
@@ -11,6 +14,7 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel("gemini-2.5-flash-lite")
 
 CATEGORIES = ["Billing", "Technical", "Account", "General"]
+RATE_LIMITER = AsyncLimiter(max_rate=12, time_period=60)
 
 
 async def llm_predict_text(text: str) -> dict:
@@ -46,22 +50,7 @@ Reply in this JSON format only:
 {{"predicted_label": "<category>", "confidence": <0.0-1.0>, "reasoning": "<brief reason>"}}
 """
     try:
-        logger.info("LLM 請求...")
-        response = await model.generate_content_async(
-            prompt
-        )  # 配合worker.mq_consumer 改成非同步等待
-        json_str = re.search(r"\{.*\}", response.text, re.DOTALL).group()
-        parsed = json.loads(json_str)
-        result = {
-            "input": text,
-            "predicted_label": parsed.get("predicted_label", "General"),
-            "confidence": str(parsed.get("confidence", 0.0)),
-            "reasoning": parsed.get("reasoning", ""),
-            "model": "gemini-2.5-flash-lite",
-            "rag_used": len(similar) > 0,
-            "cache_type": "none",
-            "status": "success",
-        }
+        result = await _call_llm_with_retry(prompt, text, similar)
         # 3. 寫入 Semantic Cache
         semantic_cache_set(text, result)
     except Exception as e:
@@ -77,3 +66,35 @@ Reply in this JSON format only:
         }
 
     return result
+
+
+async def _call_llm_with_retry(prompt: str, text: str, similar: list) -> dict:
+    delay = 2.0
+    for attempt in range(4):
+        try:
+            logger.info("控制並發 LLM 請求...")
+            async with RATE_LIMITER:
+                response = await model.generate_content_async(
+                    prompt
+                )  # 配合worker.mq_consumer 改成非同步等待
+            json_str = re.search(r"\{.*\}", response.text, re.DOTALL).group()
+            parsed = json.loads(json_str)
+            return {
+                "input": text,
+                "predicted_label": parsed.get("predicted_label", "General"),
+                "confidence": str(parsed.get("confidence", 0.0)),
+                "reasoning": parsed.get("reasoning", ""),
+                "model": "gemini-2.5-flash-lite",
+                "rag_used": len(similar) > 0,
+                "cache_type": "none",
+                "status": "success",
+            }
+        except ResourceExhausted:
+            if attempt < 3:
+                logger.warning(
+                    "Gemini 429，第 %d 次重試，等待 %.1f 秒", attempt + 1, delay
+                )
+                await asyncio.sleep(delay)
+                delay *= 2  # 2 → 4 → 8秒
+            else:
+                raise # 重新拋出 → 進 DLQ

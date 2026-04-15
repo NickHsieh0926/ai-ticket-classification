@@ -4,12 +4,14 @@ CREATE TABLE IF NOT EXISTS tickets(
     category VARCHAR(50),
     confidence VARCHAR(20),
     status VARCHAR(20),
-    trace_id VARCHAR(36), 
-    span_id VARCHAR(50),
-    reasoning TEXT,
+	reasoning TEXT,
+	model_type VARCHAR(10) DEFAULT 'ml',
     model VARCHAR(50),
     rag_used BOOLEAN DEFAULT FALSE,
-    model_type VARCHAR(10) DEFAULT 'ml',
+	redis_hit BOOLEAN DEFAULT FALSE,
+    semi_cache_hit BOOLEAN DEFAULT FALSE,
+	trace_id VARCHAR(36), 
+    span_id VARCHAR(50),
     created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

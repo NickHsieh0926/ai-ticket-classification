@@ -49,6 +49,7 @@ async def process_message(message: aio_pika.IncomingMessage, result_exchange):
                 "reasoning": result["reasoning"],
                 "model": result["model"],
                 "ragUsed": result["rag_used"],
+                "cacheType": result.get("cache_type", "none"),
                 "status": result["status"],
             }
             logger.info(f"[Consumer] Done | {result['predicted_label']}")
@@ -65,6 +66,7 @@ async def process_message(message: aio_pika.IncomingMessage, result_exchange):
                 "reasoning": f"Processing failed: {str(e)}",
                 "model": "gemini-2.5-flash-lite",
                 "ragUsed": False,
+                "cacheType": "none",
                 "status": "error",
             }
         finally:

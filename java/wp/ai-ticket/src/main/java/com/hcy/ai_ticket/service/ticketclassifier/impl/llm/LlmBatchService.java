@@ -102,7 +102,7 @@ public class LlmBatchService {
 	}
 
 	public void saveTicket(String text, String category, String confidence, String traceId, String spanId,
-			String reasoning, String model, Boolean ragUsed, String status) {
+			String reasoning, String model, Boolean ragUsed, String status, Boolean redisHit, Boolean semiCacheHit) {
 		Ticket ticket = new Ticket();
 		ticket.setContent(text);
 		ticket.setCategory(category);
@@ -114,6 +114,8 @@ public class LlmBatchService {
 		ticket.setRagUsed(ragUsed);
 		ticket.setStatus(status);
 		ticket.setModelType("llm");
+		ticket.setRedisHit(redisHit);
+		ticket.setSemiCacheHit(semiCacheHit);
 		ticketRepository.save(ticket);
 	}
 
@@ -121,7 +123,7 @@ public class LlmBatchService {
 		try {
 			PredictionResult result = objectMapper.readValue(cached, PredictionResult.class);
 			saveTicket(text, result.getPredictedLabel(), String.valueOf(result.getConfidence()), traceId, spanId,
-					result.getReasoning(), result.getModel(), Boolean.FALSE, "success");
+					result.getReasoning(), result.getModel(), Boolean.FALSE, "success", Boolean.TRUE, Boolean.FALSE);
 			pushProgress(traceId, result.getPredictedLabel());
 		} catch (Exception e) {
 			LOGGER.error("[LlmBatch] Cache HIT 處理失敗: {}", e.getMessage());

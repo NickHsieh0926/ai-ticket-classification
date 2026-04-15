@@ -45,6 +45,12 @@ public class Ticket {
 	@Column(name = "rag_used")
 	private Boolean ragUsed;
 
+	@Column(name = "redis_hit")
+	private Boolean redisHit;
+
+	@Column(name = "semi_cache_hit")
+	private Boolean semiCacheHit;
+
 	@CreationTimestamp
 	@Column(name = "created_Timestamp", updatable = false)
 	private LocalDateTime createdTimestamp;
@@ -54,8 +60,8 @@ public class Ticket {
 	}
 
 	public Ticket(Long id, String content, String category, String confidence, String status, String traceId,
-			String spanId, String modelType, String reasoning, String model, Boolean ragUsed,
-			LocalDateTime createdTimestamp) {
+			String spanId, String modelType, String reasoning, String model, Boolean ragUsed, Boolean redisHit,
+			Boolean semiCacheHit, LocalDateTime createdTimestamp) {
 		super();
 		this.id = id;
 		this.content = content;
@@ -68,6 +74,8 @@ public class Ticket {
 		this.reasoning = reasoning;
 		this.model = model;
 		this.ragUsed = ragUsed;
+		this.redisHit = redisHit;
+		this.semiCacheHit = semiCacheHit;
 		this.createdTimestamp = createdTimestamp;
 	}
 
@@ -157,6 +165,22 @@ public class Ticket {
 
 	public void setRagUsed(Boolean ragUsed) {
 		this.ragUsed = ragUsed;
+	}
+
+	public Boolean getRedisHit() {
+		return redisHit;
+	}
+
+	public void setRedisHit(Boolean redisHit) {
+		this.redisHit = redisHit;
+	}
+
+	public Boolean getSemiCacheHit() {
+		return semiCacheHit;
+	}
+
+	public void setSemiCacheHit(Boolean semiCacheHit) {
+		this.semiCacheHit = semiCacheHit;
 	}
 
 	public LocalDateTime getCreatedTimestamp() {

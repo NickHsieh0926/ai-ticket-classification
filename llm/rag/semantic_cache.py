@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 engine = get_engine()
 
 # 閾值
-SIMILARITY_THRESHOLD = 0.95
+SIMILARITY_THRESHOLD = 0.82
 
 
 # 查詢語意快取，找到相似度 > 閾值的結果
@@ -39,6 +39,7 @@ def semantic_cache_get(query_text: str) -> dict | None:
             )
             conn.commit()
             result = dict(row.result_json)
+            result["input"] = query_text
             result["semantic_cache_hit"] = True
             result["rag_used"] = False
             result["similarity"] = float(row.similarity)

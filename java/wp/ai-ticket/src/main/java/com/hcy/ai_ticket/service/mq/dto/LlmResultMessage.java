@@ -12,13 +12,14 @@ public class LlmResultMessage {
 	private String model;
 	private String status;
 	private boolean ragUsed;
+	private String cacheType;
 
 	public LlmResultMessage() {
 		super();
 	}
 
 	public LlmResultMessage(String traceId, String spanId, String cacheKey, String text, String predictedLabel,
-			String confidence, String reasoning, String model, String status, boolean ragUsed) {
+			String confidence, String reasoning, String model, String status, boolean ragUsed, String cacheType) {
 		super();
 		this.traceId = traceId;
 		this.spanId = spanId;
@@ -30,6 +31,7 @@ public class LlmResultMessage {
 		this.model = model;
 		this.status = status;
 		this.ragUsed = ragUsed;
+		this.cacheType = cacheType;
 	}
 
 	public String getTraceId() {
@@ -110,6 +112,14 @@ public class LlmResultMessage {
 
 	public void setRagUsed(boolean ragUsed) {
 		this.ragUsed = ragUsed;
+	}
+
+	public String getCacheType() {
+		return cacheType;
+	}
+
+	public void setCacheType(String cacheType) {
+		this.cacheType = cacheType;
 	}
 
 }

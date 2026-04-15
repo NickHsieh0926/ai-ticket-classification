@@ -7,6 +7,10 @@ COPY requirements.txt .
 
 RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
 
+RUN python -c "import nltk; nltk.download('wordnet', quiet=True); nltk.download('omw-1.4', quiet=True)"
+
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+
 COPY . .
 
 EXPOSE 8000

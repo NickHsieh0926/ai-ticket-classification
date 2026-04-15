@@ -4,6 +4,7 @@ import re
 import google.generativeai as genai
 import logging
 import asyncio
+import time
 from aiolimiter import AsyncLimiter
 from google.api_core.exceptions import ResourceExhausted
 from rag.retriever import retrieve_similar
@@ -15,6 +16,17 @@ model = genai.GenerativeModel("gemini-2.5-flash-lite")
 
 CATEGORIES = ["Billing", "Technical", "Account", "General"]
 RATE_LIMITER = AsyncLimiter(max_rate=12, time_period=60)
+
+# 熔斷器共享狀態
+_CIRCUIT = {
+    "open": False,
+    "open_until": 0.0,
+    "consecutive_429": 0,
+}
+CIRCUIT_OPEN_THRESHOLD = 5
+CIRCUIT_COOLDOWN_SECS = 30
+MAX_RETRIES = 3
+RETRY_DELAY_SECS = 2.0
 
 
 async def llm_predict_text(text: str) -> dict:
@@ -69,14 +81,30 @@ Reply in this JSON format only:
 
 
 async def _call_llm_with_retry(prompt: str, text: str, similar: list) -> dict:
-    delay = 2.0
-    for attempt in range(4):
+    if _CIRCUIT["open"]:
+        remaining = _CIRCUIT["open_until"] - time.monotonic()
+        if remaining > 0:
+            logger.error("Circuit OPEN：Gemini 429 冷卻中，約 %.0f 秒後恢復", remaining)
+            raise RuntimeError(
+                f"Circuit OPEN：Gemini 429 冷卻中，約 {remaining:.0f} 秒後恢復"
+            )
+        _CIRCUIT["open"] = False
+        _CIRCUIT["consecutive_429"] = 0
+        logger.info("Circuit HALF-OPEN：嘗試恢復")
+
+    for attempt in range(MAX_RETRIES):
+        if _CIRCUIT["open"] and time.monotonic() < _CIRCUIT["open_until"]:
+            raise RuntimeError("Circuit OPEN mid-retry：本筆快速失敗")
+
         try:
             logger.info("控制並發 LLM 請求...")
             async with RATE_LIMITER:
                 response = await model.generate_content_async(
                     prompt
                 )  # 配合worker.mq_consumer 改成非同步等待
+
+            _CIRCUIT["consecutive_429"] = 0
+
             json_str = re.search(r"\{.*\}", response.text, re.DOTALL).group()
             parsed = json.loads(json_str)
             return {
@@ -90,11 +118,30 @@ async def _call_llm_with_retry(prompt: str, text: str, similar: list) -> dict:
                 "status": "success",
             }
         except ResourceExhausted:
-            if attempt < 3:
-                logger.warning(
-                    "Gemini 429，第 %d 次重試，等待 %.1f 秒", attempt + 1, delay
+            _CIRCUIT["consecutive_429"] += 1
+            logger.warning(
+                "Gemini 429，第 %d 次嘗試，連續 429 計數=%d",
+                attempt + 1,
+                _CIRCUIT["consecutive_429"],
+            )
+
+            # 達到閾值 → 開路 
+            if _CIRCUIT["consecutive_429"] >= CIRCUIT_OPEN_THRESHOLD:
+                _CIRCUIT["open"] = True
+                _CIRCUIT["open_until"] = time.monotonic() + CIRCUIT_COOLDOWN_SECS
+                logger.error(
+                    "Circuit OPEN：連續 %d 次 429，冷卻 %d 秒",
+                    CIRCUIT_OPEN_THRESHOLD,
+                    CIRCUIT_COOLDOWN_SECS,
                 )
-                await asyncio.sleep(delay)
-                delay *= 2  # 2 → 4 → 8秒
-            else:
-                raise # 重新拋出 → 進 DLQ
+                raise RuntimeError(
+                    f"Circuit OPEN：連續 {CIRCUIT_OPEN_THRESHOLD} 次 429，"
+                    f"暫停 {CIRCUIT_COOLDOWN_SECS} 秒後自動恢復"
+                )
+
+            if attempt < MAX_RETRIES - 1:
+                logger.warning("未達閾值 → 固定間隔重試")
+                await asyncio.sleep(RETRY_DELAY_SECS)
+
+    # 防禦性設計，正常情況下不會被執行
+    raise RuntimeError(f"Gemini 429：超過最大重試次數 {MAX_RETRIES}")

@@ -53,8 +53,9 @@ public class LlmResultConsumer {
 			}
 
 			// 寫入 DB
+			boolean semiCacheHit = "semantic".equals(msg.getCacheType());
 			llmBatchService.saveTicket(msg.getText(), msg.getPredictedLabel(), msg.getConfidence(), msg.getTraceId(),
-					msg.getSpanId(), msg.getReasoning(), msg.getModel(), msg.isRagUsed(), msg.getStatus());
+					msg.getSpanId(), msg.getReasoning(), msg.getModel(), msg.isRagUsed(), msg.getStatus(), Boolean.FALSE, semiCacheHit);
 
 			// 推送進度（由 LlmBatchService 統一處理 Redis INCR + WebSocket）
 			llmBatchService.pushProgress(msg.getTraceId(), msg.getPredictedLabel());

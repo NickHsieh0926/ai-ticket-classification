@@ -1,0 +1,87 @@
+@startuml LLM upload Path - Service Level
+!theme mars
+
+title LLM 路徑時序圖（服務層）
+
+actor       Client          as client
+boundary    Nginx           as nginx
+participant "Java API"      as java
+collections Redis           as redis
+queue       RabbitMQ        as mq
+participant "FastAPI Worker" as worker
+database    PostgreSQL      as db
+participant "Gemini AI"     as llm
+
+== 請求入口 ==
+
+client -> nginx : POST /api/tickets/upload\n(JWT Token、X-Model-Type)
+activate nginx #ffebeb
+nginx  -> java  : 轉發請求\n(反向代理 /api/)
+deactivate nginx
+
+activate java #fff5e7
+java   -> java  : JWT 驗證
+java   -> java  : X-Model-Type\n(llmClient.predictBatch(texts))
+java --> client : 202 Accepted\n(任務已派發，等待 WebSocket 推送）
+
+== Redis 快取查詢 ==
+
+java -> redis : GET llm:predict:{MD5(text)}
+activate redis #e3f2e0
+alt Cache Hit（Redis快取命中）
+
+    redis --> java   : 命中，回傳快取結果
+    deactivate redis
+    java -> db       : INSERT tickets（分類來源：cache）
+    java -> client  : WebSocket 推送進度
+
+else Cache Miss（Redis快取未命中）
+
+    == RabbitMQ 非同步任務 ==
+
+    java -> mq : publish → llm.task
+    deactivate java
+    activate mq #e5e5f5
+
+    mq -> worker : consume llm.task
+    deactivate mq
+    activate worker #f1e5f5
+
+    == Semantic Cache ==
+
+    worker -> db  : 語意快取查詢\n(pgvector cosine similarity)
+    activate db #ffe0fd
+    db --> worker : 查詢結果
+    deactivate db
+    note right : similarity > 0.8\n命中則略過 LLM 呼叫
+
+    == RAG + LLM 推論 ==
+    alt 呼叫 LLM（Semantic Cache 未命中）
+        worker -> db  : RAG 向量搜尋
+        activate db #ffe0fd
+        db --> worker : 相似工單
+        deactivate db
+
+        worker -> llm : 呼叫 Gemini API\n(prompt + RAG context)
+        activate llm #e0faff
+        llm --> worker : 分類結果
+        deactivate llm
+    end
+
+    == 結果儲存與通知 ==
+
+    worker -> mq : publish → llm.result
+    deactivate worker
+    activate mq #e5e5f5
+    mq -> java : consume llm.result
+    deactivate mq
+    activate java #fff5e7
+
+    java -> redis : SET llm:predict:{MD5(text)}\n(TTL: 86400s)
+    java -> db    : INSERT tickets（分類來源：LLM）
+    java -> client : WebSocket 推送最終結果
+    deactivate java
+
+end
+
+@enduml

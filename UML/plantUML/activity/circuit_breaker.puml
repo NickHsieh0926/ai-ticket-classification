@@ -1,0 +1,50 @@
+@startuml Circuit Breaker
+
+title LLM API 熔斷機制
+
+start
+
+:進入函數;
+
+if (Circuit OPEN?) then (Yes)
+    :計算剩餘時間;
+    if (剩餘時間 > 0?) then (Yes)
+        :拋出 RuntimeError;
+        stop
+    else (No)
+        :重置狀態為 CLOSED;
+        :重置consecutive_429 = 0;
+        :Circuit HALF-OPEN：嘗試恢復;
+    endif
+else (No)
+endif
+
+repeat
+    if (迴圈中途變為 OPEN?) then (Yes)
+        :拋出 RuntimeError;
+        stop
+    else (No)
+        :控制並發 (RATE_LIMITER);
+        :呼叫 Gemini API;
+    endif
+
+    if (發生 429 錯誤?) then (Yes)
+        :consecutive_429 + 1;
+        if (consecutive_429 >= THRESHOLD?) then (Yes)
+            :Circuit OPEN = True;
+            :設定 open_until;
+            :拋出 RuntimeError;
+            stop
+        else (No)
+            :asyncio.sleep();
+        endif
+    else (No - 成功)
+        :重置consecutive_429 = 0;
+        :解析 JSON 並封裝結果;
+        :回傳成功結果;
+        stop
+    endif
+repeat while (attempt < MAX_RETRIES?) is (Yes)
+:拋出最大重試次數錯誤;
+stop
+@enduml

@@ -138,7 +138,8 @@ async def _call_llm_with_retry(prompt: str, text: str, similar: list) -> dict:
                     f"Circuit OPEN：連續 {CIRCUIT_OPEN_THRESHOLD} 次 429，"
                     f"暫停 {CIRCUIT_COOLDOWN_SECS} 秒後自動恢復"
                 )
-
+            
+            # 避免最後一次無意義等待
             if attempt < MAX_RETRIES - 1:
                 logger.warning("未達閾值 → 固定間隔重試")
                 await asyncio.sleep(RETRY_DELAY_SECS)

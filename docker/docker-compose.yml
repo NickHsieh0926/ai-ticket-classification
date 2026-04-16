@@ -17,8 +17,6 @@ services:
       context: ../llm
       dockerfile: api/Dockerfile
     container_name: fastapi
-    ports:
-        - "8000:8000"    #測試用
     environment:
       - TZ=Asia/Taipei
     env_file:
@@ -31,8 +29,6 @@ services:
   postgres:
     image: pgvector/pgvector:pg16
     container_name: postgres
-    ports:
-      - "5432:5432"    #測試用
     environment:
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -78,15 +74,6 @@ services:
     networks:
       - app-network
       
-  redis-insight:
-    image: redis/redisinsight:latest
-    ports:
-      - "5540:5540"
-    depends_on:
-      - redis
-    networks:
-      - app-network
-      
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -94,8 +81,6 @@ services:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
       - TZ=Asia/Taipei
-    ports:
-      - "15672:15672"    # 管理介面（對外，開發用）
     networks:
       - app-network
     healthcheck:

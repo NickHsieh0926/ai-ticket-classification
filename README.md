@@ -75,7 +75,7 @@ V1.1.0 以 TF-IDF + Logistic Regression 實現高吞吐 ML 分類（206 筆/秒�
 ### 瓶頸一：ML 模型對語意模糊工單力不從心 → 引入 LLM + SOLID 重構
 
 **V1.1.0 的問題：**
-TF-IDF 依賴關鍵字頻率，遇到「這個月費用感覺有點奇怪」這類語意曖昧的工單，分類準確率明顯下降。
+TF-IDF 依賴關鍵字頻率，遇到語意曖昧的工單，分類準確率明顯下降。
 同時原先 `TicketClassifierService` 將 CSV 解析、AI 推論、進度推播耦合在單一類別，
 無法在不更動 ML 程式碼的情況下新增 LLM 路徑。
 
@@ -284,12 +284,12 @@ RABBITMQ_PASSWORD=your_mq_password
 
 ```bash
 # 1. RabbitMQ Management
-<http://localhost:15672/>
+http://localhost:15672/
 Username: ${RABBITMQ_USER}
 Password: ${RABBITMQ_PASSWORD}
 
 # 2. Redis Insight
-<http://localhost:5540/>
+http://localhost:5540/
 # 點擊 "Add Redis database"，請依照以下資訊填寫：
 Host: redis ( service 名稱 )
 Port: 6379

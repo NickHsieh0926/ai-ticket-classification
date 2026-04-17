@@ -58,7 +58,7 @@ CREATE INDEX IF NOT EXISTS idx_ticket_embeddings_hnsw
 CREATE TABLE IF NOT EXISTS semantic_cache (
   id           BIGSERIAL PRIMARY KEY,
   query_text   TEXT NOT NULL,
-  embedding    vector(1536),
+  embedding    vector(384),
   result_json  JSONB NOT NULL,
   hit_count    INT DEFAULT 0,
   created_at   TIMESTAMP DEFAULT NOW(),

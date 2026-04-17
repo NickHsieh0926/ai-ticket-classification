@@ -36,7 +36,7 @@ async def process_message(message: aio_pika.IncomingMessage, result_exchange):
             # RAG + LLM 推論
             result = await llm_predict_text(text)
             # pgvector 寫入
-            store_embedding(trace_id, text, result["predicted_label"])
+            store_embedding(trace_id, text, result.get("predicted_label"))
 
             # 推論結果發布到 llm.result Queue
             result_msg = {

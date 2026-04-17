@@ -47,6 +47,10 @@
             </p>
         </div>
 
+        <div v-if="isUploading" class="w-full bg-gray-200 rounded-full h-2 mt-4 overflow-hidden">
+            <div class="h-2 bg-green-500 rounded-full animate-indeterminate"></div>
+        </div>
+
         <!-- Loading -->
         <div v-if="pending" class="flex flex-col items-center justify-center py-32">
             <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent

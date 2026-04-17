@@ -43,7 +43,12 @@ def retrieve_similar(query: str, top_k: int = 3) -> list[dict]:
         ]
 
 
-def store_embedding(trace_id: str | None, content: str, category: str) -> None:
+def store_embedding(trace_id: str | None, content: str, category: str | None) -> None:
+    logger.info(f"Category 為 '{category}'")
+    if not category or category == "LLM error":
+        logger.info("Category 為 None 或 LLM error，不儲存到ticket_embeddings")
+        return
+
     logger.info("儲存 result 至 ticket_embeddings")
     embedding = embed(content)
     embedding_str = str(embedding)

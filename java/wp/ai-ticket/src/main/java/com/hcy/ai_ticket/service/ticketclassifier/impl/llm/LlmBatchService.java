@@ -56,7 +56,9 @@ public class LlmBatchService {
 		int total = texts.size();
 		redisTemplate.opsForValue().set(String.format(BATCH_TOTAL_KEY, traceId), String.valueOf(total),
 				Duration.ofHours(24));
-		lastSentPercentMap.put(traceId, new AtomicInteger(0));
+		redisTemplate.opsForValue().set(String.format(BATCH_COMPLETED_KEY, traceId), String.valueOf(0),
+				Duration.ofHours(24));
+		lastSentPercentMap.put(traceId, new AtomicInteger(-1));
 
 		LOGGER.info("[LlmBatch] 開始派發 total={}", total);
 
@@ -80,18 +82,30 @@ public class LlmBatchService {
 			LOGGER.warn("[LlmBatch] 找不到 total");
 			return;
 		}
+
+		String completedString = redisTemplate.opsForValue().get(String.format(BATCH_COMPLETED_KEY, traceId));
+		if (completedString == null) {
+			LOGGER.warn("[LlmBatch] 找不到 completedString");
+		}
+
 		int total = Integer.parseInt(totalStr);
 		long completed = redisTemplate.opsForValue().increment(String.format(BATCH_COMPLETED_KEY, traceId));
-		int intPercent = (int) (double) completed / total * 100;
+		double percent = ((double) completed / total * 100);
+		int intPercent = (int) percent;
 		boolean done = completed >= total;
 
 		AtomicInteger lastSent = lastSentPercentMap.get(traceId);
-		if (lastSent != null && (done || intPercent > lastSent.get())) {
-			if (lastSent.getAndSet(intPercent) < intPercent || done) {
-				wsProgressService.push(traceId, TopicType.PROGRESS, completed, total, label,
-						done ? "COMPLETED" : "PROCESSING");
-				LOGGER.info("[LlmBatch] Progress {}/{} ({}%)", completed, total, intPercent);
-			}
+		if (lastSent == null) return;
+
+		if (done) lastSent.set(intPercent);
+
+		int current = lastSent.get();
+		boolean shouldPush = done || (current < intPercent && lastSent.compareAndSet(current, intPercent));
+
+		if (shouldPush) {
+			wsProgressService.push(traceId, TopicType.PROGRESS, completed, total, label,
+					done ? "COMPLETED" : "PROCESSING");
+			LOGGER.info("[LlmBatch] Progress {}/{} ({}%)", completed, total, intPercent);
 		}
 
 		if (done) {

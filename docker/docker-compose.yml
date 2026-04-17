@@ -1,3 +1,5 @@
+name: Ai-Ticket
+
 services:
   nginx:
     build:

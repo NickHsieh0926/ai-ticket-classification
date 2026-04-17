@@ -2,6 +2,7 @@ package com.hcy.ai_ticket.service.ticketclassifier.impl.ml;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,19 +69,25 @@ public class AsyncTicketService {
 				int intPercent = (int) percent;
 				boolean done = completed >= total;
 
-				if (completed == total || intPercent > progress.getLastSentPercent().get()) {
-					if (progress.getLastSentPercent().getAndSet(intPercent) < intPercent || done) {
+				AtomicInteger lastSentPercent = progress.getLastSentPercent();
 
-						wsProgressService.push(traceId, TopicType.PROGRESS, completed, total,
-								result.getPredictedLabel(), done ? "COMPLETED" : "PROCESSING");
+				if (done)
+					lastSentPercent.set(intPercent);
 
-						LOGGER.info("發送進度: {}%", intPercent);
+				int current = lastSentPercent.get();
+				boolean shouldPush = done
+						|| (current < intPercent && lastSentPercent.compareAndSet(current, intPercent));
 
-						if (completed == total) {
-							progressMap.remove(traceId);
-						}
-					}
+				if (shouldPush) {
+					wsProgressService.push(traceId, TopicType.PROGRESS, completed, total, result.getPredictedLabel(),
+							done ? "COMPLETED" : "PROCESSING");
+					LOGGER.info("發送進度: {}%", intPercent);
 				}
+
+				if (done) {
+					progressMap.remove(traceId);
+				}
+
 			}
 
 		} catch (Exception e) {

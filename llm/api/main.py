@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     task = asyncio.create_task(start_consumer())
-    await asyncio.sleep(1) #讓 start_consumer 有時間可以啟動
+    await asyncio.sleep(1)  # 讓 start_consumer 有時間可以啟動
     yield
     task.cancel()
 
@@ -101,6 +101,6 @@ async def llm_predict(request: LlmPredictRequest, background_tasks: BackgroundTa
     logger.info("正在執行 LLM + RAG predict 運算...")
     result = await llm_predict_text(request.text)
     background_tasks.add_task(
-        store_embedding, trace_id_var.get(), request.text, result["predicted_label"]
+        store_embedding, trace_id_var.get(), request.text, result.get("predicted_label")
     )
     return result

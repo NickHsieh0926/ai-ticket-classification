@@ -1,15 +1,28 @@
 <template>
+
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 p-6
+                    bg-white rounded-2xl shadow-sm border border-gray-100 gap-4">
+        <div>
+            <h1 class="text-2xl font-extrabold text-gray-800">Tickets 預測圖表</h1>
+            <p class="text-sm text-gray-500 mt-1">
+                <span class="font-mono bg-gray-100 px-2 py-0.5 rounded text-blue-600">
+                    此頁面為預測示意頁面(資料無存DB)
+                </span>
+            </p>
+        </div>
+    </div>
+
     <div class="p-4 space-y-4">
 
         <TicketSearch @search="handleSearch" />
 
         <TicketFilter :labels="labels" @submit="applyFilter" />
 
-        <TicketTable v-if="tickets.length" :rows="store.paginatedTickets"/>
+        <TicketTable v-if="tickets.length" :rows="store.paginatedTickets" />
 
         <Pagination :page="store.page" :total-pages="store.totalPages" @update:page="store.page = $event" />
 
-        <AnalysisDashboard  v-if="tickets.length" />
+        <AnalysisDashboard v-if="tickets.length" />
 
         <!-- <TicketCharts v-if="tickets.length" :categoryChart="chartData" /> -->
 
@@ -28,7 +41,7 @@ import TicketTable from "@/components/tickets/TicketTable.vue";
 import TicketCharts from "@/components/tickets/TicketCharts.vue";
 import TicketFilter from "@/components/tickets/TicketFilter.vue";
 import Pagination from "@/components/common/Pagination.vue";
-import AnalysisDashboard  from "@/components/chart/analytics/AnalysisDashboard.vue"
+import AnalysisDashboard from "@/components/chart/analytics/AnalysisDashboard.vue"
 
 // 狀態
 const store = useTicketsStore()

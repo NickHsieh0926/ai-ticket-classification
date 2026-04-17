@@ -5,6 +5,7 @@ import google.generativeai as genai
 import logging
 import asyncio
 import time
+import random
 from aiolimiter import AsyncLimiter
 from google.api_core.exceptions import ResourceExhausted
 from rag.retriever import retrieve_similar
@@ -26,7 +27,6 @@ _CIRCUIT = {
 CIRCUIT_OPEN_THRESHOLD = 5
 CIRCUIT_COOLDOWN_SECS = 30
 MAX_RETRIES = 3
-RETRY_DELAY_SECS = 2.0
 
 
 async def llm_predict_text(text: str) -> dict:
@@ -103,6 +103,7 @@ async def _call_llm_with_retry(prompt: str, text: str, similar: list) -> dict:
                     prompt
                 )  # 配合worker.mq_consumer 改成非同步等待
 
+            logger.info("重新計數 consecutive_429 = 0")
             _CIRCUIT["consecutive_429"] = 0
 
             json_str = re.search(r"\{.*\}", response.text, re.DOTALL).group()
@@ -117,7 +118,14 @@ async def _call_llm_with_retry(prompt: str, text: str, similar: list) -> dict:
                 "cache_type": "none",
                 "status": "success",
             }
-        except ResourceExhausted:
+        except ResourceExhausted as e:
+            error_str = str(e)
+            logger.warning(f"ResourceExhausted: {error_str}")
+
+            if "PerDay" in error_str:
+                logger.error("每日配額耗盡")
+                raise RuntimeError("每日配額耗盡")
+            
             _CIRCUIT["consecutive_429"] += 1
             logger.warning(
                 "Gemini 429，第 %d 次嘗試，連續 429 計數=%d",
@@ -125,7 +133,7 @@ async def _call_llm_with_retry(prompt: str, text: str, similar: list) -> dict:
                 _CIRCUIT["consecutive_429"],
             )
 
-            # 達到閾值 → 開路 
+            # 達到閾值 → 開路
             if _CIRCUIT["consecutive_429"] >= CIRCUIT_OPEN_THRESHOLD:
                 _CIRCUIT["open"] = True
                 _CIRCUIT["open_until"] = time.monotonic() + CIRCUIT_COOLDOWN_SECS
@@ -138,11 +146,12 @@ async def _call_llm_with_retry(prompt: str, text: str, similar: list) -> dict:
                     f"Circuit OPEN：連續 {CIRCUIT_OPEN_THRESHOLD} 次 429，"
                     f"暫停 {CIRCUIT_COOLDOWN_SECS} 秒後自動恢復"
                 )
-            
+
             # 避免最後一次無意義等待
             if attempt < MAX_RETRIES - 1:
-                logger.warning("未達閾值 → 固定間隔重試")
-                await asyncio.sleep(RETRY_DELAY_SECS)
+                jitter = random.randint(2, 5)
+                logger.warning("未達閾值 → 等待 %d 秒",jitter)
+                await asyncio.sleep(jitter)
 
     # 防禦性設計，正常情況下不會被執行
     raise RuntimeError(f"Gemini 429：超過最大重試次數 {MAX_RETRIES}")

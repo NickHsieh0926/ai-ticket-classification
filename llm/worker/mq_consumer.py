@@ -17,7 +17,9 @@ RABBITMQ_URL = (
 )
 
 LLM_TASK_QUEUE = os.getenv("MQ_QUEUE_LLM_TASK", "llm.task")
+LLM_TASK_DLQ = os.getenv("MQ_QUEUE_LLM_TASK_DLQ", "llm.task.dead-letter")
 LLM_RESULT_QUEUE = os.getenv("MQ_QUEUE_LLM_RESULT", "llm.result")
+LLM_RESULT_DLQ = os.getenv("MQ_QUEUE_LLM_RESULT_DLQ", "llm.result.dead-letter")
 
 
 async def process_message(message: aio_pika.IncomingMessage, result_exchange):
@@ -90,10 +92,28 @@ async def main():
     result_exchange = await channel.declare_exchange(
         "ticket.direct", aio_pika.ExchangeType.DIRECT, durable=True
     )
+    
+    await channel.declare_queue(LLM_TASK_DLQ, durable=True)
+    await channel.declare_queue(LLM_RESULT_DLQ, durable=True)
 
-    task_queue = await channel.declare_queue(LLM_TASK_QUEUE, passive=True)
+    task_queue = await channel.declare_queue(
+        LLM_TASK_QUEUE,
+        durable=True,
+        arguments={
+            "x-dead-letter-exchange": "",
+            "x-dead-letter-routing-key": LLM_TASK_DLQ,
+        },
+    )
+
+    await channel.declare_queue(
+        LLM_RESULT_QUEUE,
+        durable=True,
+        arguments={
+            "x-dead-letter-exchange": "",
+            "x-dead-letter-routing-key": LLM_RESULT_DLQ,
+        },
+    )
     await task_queue.consume(lambda msg: process_message(msg, result_exchange))
-
     logger.info("[Consumer] Waiting for messages...")
     # 保持執行
     await asyncio.Future()

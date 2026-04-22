@@ -17,10 +17,10 @@ public class AbProgressTracker {
 
 	private final ConcurrentHashMap<String, int[]> progressMap = new ConcurrentHashMap<>();
 	private static final String BATCH_TOTAL_KEY = "batch:%s:total";
-	
+	private static final String BATCH_COMPLETED_KEY = "batch:%s:completed";
+
 	private final WsProgressService wsProgressService;
 	private final RedisTemplate<String, String> redisTemplate;
-	
 
 	public AbProgressTracker(WsProgressService wsProgressService, RedisTemplate<String, String> redisTemplate) {
 		this.wsProgressService = wsProgressService;
@@ -59,6 +59,7 @@ public class AbProgressTracker {
 			if (done) {
 				progressMap.remove(traceId);
 				redisTemplate.delete(String.format(BATCH_TOTAL_KEY, traceId));
+				redisTemplate.delete(String.format(BATCH_COMPLETED_KEY, traceId));
 				LOGGER.info("[AbTracker] AB 全部完成，清除 Redis traceId={}", traceId);
 			}
 		}

@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     task = asyncio.create_task(start_consumer())
-    await asyncio.sleep(1)  # 讓 start_consumer 有時間可以啟動
     yield
     task.cancel()
 

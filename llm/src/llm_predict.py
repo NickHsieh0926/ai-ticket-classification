@@ -16,14 +16,10 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel("gemini-2.5-flash-lite")
 
 CATEGORIES = ["Billing", "Technical", "Account", "General"]
-RATE_LIMITER = AsyncLimiter(max_rate=12, time_period=60)
+RATE_LIMITER = AsyncLimiter(max_rate=8, time_period=60)
 
 # 熔斷器共享狀態
-_CIRCUIT = {
-    "open": False,
-    "open_until": 0.0,
-    "consecutive_429": 0,
-}
+_CIRCUIT = {"open": False, "open_until": 0.0, "consecutive_429": 0, "retry_until": 0.0}
 CIRCUIT_OPEN_THRESHOLD = 5
 CIRCUIT_COOLDOWN_SECS = 30
 MAX_RETRIES = 3
@@ -125,7 +121,13 @@ async def _call_llm_with_retry(prompt: str, text: str, similar: list) -> dict:
             if "PerDay" in error_str:
                 logger.error("每日配額耗盡")
                 raise RuntimeError("每日配額耗盡")
-            
+
+            match = re.search(r"Please retry in ([\d.]+)s", error_str)
+            retry_seconds = float(match.group(1)) if match else 5.0
+
+            new_retry_until = time.monotonic() + retry_seconds
+            _CIRCUIT["retry_until"] = max(_CIRCUIT["retry_until"], new_retry_until)
+
             _CIRCUIT["consecutive_429"] += 1
             logger.warning(
                 "Gemini 429，第 %d 次嘗試，連續 429 計數=%d",
@@ -149,9 +151,10 @@ async def _call_llm_with_retry(prompt: str, text: str, similar: list) -> dict:
 
             # 避免最後一次無意義等待
             if attempt < MAX_RETRIES - 1:
-                jitter = random.randint(2, 5)
-                logger.warning("未達閾值 → 等待 %d 秒",jitter)
-                await asyncio.sleep(jitter)
+                remaining = _CIRCUIT["retry_until"] - time.monotonic()
+                wait_secs = max(remaining, 0) + random.uniform(1, 5)
+                logger.warning("未達閾值 → 等待 %.1f 秒（含 jitter）", wait_secs)
+                await asyncio.sleep(wait_secs)
 
     # 防禦性設計，正常情況下不會被執行
     raise RuntimeError(f"Gemini 429：超過最大重試次數 {MAX_RETRIES}")
